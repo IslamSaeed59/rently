@@ -5,8 +5,18 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 const days = Array.from({ length: 31 }, (_, i) => i + 1);
 const years = Array.from({ length: 2025 - 1950 + 1 }, (_, i) => 2025 - i);
@@ -14,7 +24,7 @@ const years = Array.from({ length: 2025 - 1950 + 1 }, (_, i) => 2025 - i);
 const SingUp = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-// ... (state fields)
+    // ... (state fields)
   });
 
   const [loading, setLoading] = useState(false);
@@ -36,7 +46,7 @@ const SingUp = () => {
       }
 
       const DateofBrith = `${formData.year}-${formData.month.padStart(2, "0")}-${formData.day.padStart(2, "0")}`;
-      
+
       const payload = {
         Firstname: formData.Firstname,
         LastName: formData.LastName,
@@ -49,12 +59,13 @@ const SingUp = () => {
 
       const response = await registerUser(payload);
       toast.success(response.message || "OTP sent to your email!");
-      
+
       // Navigate to OTP page with data
       setTimeout(() => {
-        navigate("/verify-otp", { state: { email: formData.Email, userData: payload } });
+        navigate("/verify-otp", {
+          state: { email: formData.Email, userData: payload },
+        });
       }, 1500);
-      
     } catch (error) {
       toast.error(error.message || "Registration failed");
     } finally {
@@ -66,7 +77,6 @@ const SingUp = () => {
     <div className="min-h-screen bg-gradient-to-br from-[#4A3E85] via-[#2D245B] to-[#0B0915] flex items-center justify-center p-4 sm:p-10">
       <ToastContainer theme="dark" />
       <div className="w-full max-w-6xl flex flex-col md:flex-row items-center gap-12 lg:gap-24">
-        
         {/* Left Side */}
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <img
@@ -74,14 +84,13 @@ const SingUp = () => {
             alt="Rently Logo"
             className="w-full max-w-[450px] object-contain drop-shadow-2xl"
           />
-          <p className="text-white text-lg sm:text-xl font-light tracking-wide mt-4 opacity-90">
-            Egypt's #1 Rental Marketplace
-          </p>
         </div>
 
         {/* Right Side */}
         <div className="flex-1 w-full max-w-md bg-transparent text-white">
-          <h1 className="text-4xl font-semibold mb-10 tracking-tight">Create an account</h1>
+          <h1 className="text-4xl font-semibold mb-10 tracking-tight">
+            Create an account
+          </h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
@@ -136,17 +145,47 @@ const SingUp = () => {
             <div className="space-y-2">
               <label className="text-sm text-gray-400">Date of Birth</label>
               <div className="flex gap-4">
-                <select required name="year" value={formData.year} onChange={handleChange} className="flex-1 bg-white text-black rounded-lg py-2 px-3 text-sm focus:outline-none">
+                <select
+                  required
+                  name="year"
+                  value={formData.year}
+                  onChange={handleChange}
+                  className="flex-1 bg-white text-black rounded-lg py-2 px-3 text-sm focus:outline-none"
+                >
                   <option value="">YYYY</option>
-                  {years.map((year) => <option key={year} value={year}>{year}</option>)}
+                  {years.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
                 </select>
-                <select required name="day" value={formData.day} onChange={handleChange} className="flex-1 bg-white text-black rounded-lg py-2 px-3 text-sm focus:outline-none">
+                <select
+                  required
+                  name="day"
+                  value={formData.day}
+                  onChange={handleChange}
+                  className="flex-1 bg-white text-black rounded-lg py-2 px-3 text-sm focus:outline-none"
+                >
                   <option value="">DD</option>
-                  {days.map((day) => <option key={day} value={day}>{day}</option>)}
+                  {days.map((day) => (
+                    <option key={day} value={day}>
+                      {day}
+                    </option>
+                  ))}
                 </select>
-                <select required name="month" value={formData.month} onChange={handleChange} className="flex-1 bg-white text-black rounded-lg py-2 px-3 text-sm focus:outline-none">
+                <select
+                  required
+                  name="month"
+                  value={formData.month}
+                  onChange={handleChange}
+                  className="flex-1 bg-white text-black rounded-lg py-2 px-3 text-sm focus:outline-none"
+                >
                   <option value="">MM</option>
-                  {months.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}
+                  {months.map((month, index) => (
+                    <option key={month} value={index + 1}>
+                      {month}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -156,16 +195,36 @@ const SingUp = () => {
               <label className="text-sm text-gray-400">Gender</label>
               <div className="flex gap-8 items-center pt-1">
                 <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className={`w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center group-hover:border-white transition-all ${formData.Gender === "Male" ? "border-white" : ""}`}>
-                    <input type="radio" name="Gender" value="Male" className="hidden" onChange={handleChange} />
-                    {formData.Gender === "Male" && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
+                  <div
+                    className={`w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center group-hover:border-white transition-all ${formData.Gender === "Male" ? "border-white" : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="Gender"
+                      value="Male"
+                      className="hidden"
+                      onChange={handleChange}
+                    />
+                    {formData.Gender === "Male" && (
+                      <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
+                    )}
                   </div>
                   <span className="text-gray-300">Male</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className={`w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center group-hover:border-white transition-all ${formData.Gender === "Female" ? "border-white" : ""}`}>
-                    <input type="radio" name="Gender" value="Female" className="hidden" onChange={handleChange} />
-                    {formData.Gender === "Female" && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
+                  <div
+                    className={`w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center group-hover:border-white transition-all ${formData.Gender === "Female" ? "border-white" : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="Gender"
+                      value="Female"
+                      className="hidden"
+                      onChange={handleChange}
+                    />
+                    {formData.Gender === "Female" && (
+                      <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
+                    )}
                   </div>
                   <span className="text-gray-300">Female</span>
                 </label>
@@ -186,13 +245,23 @@ const SingUp = () => {
                 type="button"
                 className="w-full bg-transparent border border-gray-600 flex items-center justify-center gap-3 py-3 rounded-lg hover:bg-white/5 transition-colors"
               >
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                <img
+                  src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                  alt="Google"
+                  className="w-5 h-5"
+                />
                 <span>Sign up with Google</span>
               </button>
             </div>
 
             <p className="text-center text-sm text-gray-400 mt-6">
-              Already have account? <a href="/login" className="text-white underline underline-offset-4 hover:text-gray-200">Log in</a>
+              Already have account?{" "}
+              <a
+                href="/login"
+                className="text-white underline underline-offset-4 hover:text-gray-200"
+              >
+                Log in
+              </a>
             </p>
           </form>
         </div>

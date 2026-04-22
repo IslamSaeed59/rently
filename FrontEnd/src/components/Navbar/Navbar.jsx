@@ -11,7 +11,7 @@ const Navbar = () => {
           <div className="flex-shrink-0 flex items-center">
             <Link to="/" className="block">
               <img
-                src="/Logo-small.png"
+                src="/Small-logo.png"
                 alt="Rently Logo"
                 className="h-15 w-auto object-contain"
               />

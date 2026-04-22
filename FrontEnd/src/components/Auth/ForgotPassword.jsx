@@ -14,7 +14,7 @@ const ForgotPassword = () => {
     try {
       const response = await forgotPassword(email);
       toast.success(response.message || "OTP sent to your email!");
-      
+
       // Redirect to OTP page but mention it's for reset
       setTimeout(() => {
         navigate("/verify-otp", { state: { email, isReset: true } });
@@ -30,7 +30,6 @@ const ForgotPassword = () => {
     <div className="min-h-screen bg-gradient-to-br from-[#4A3E85] via-[#2D245B] to-[#0B0915] flex items-center justify-center p-4 sm:p-10 text-white">
       <ToastContainer theme="dark" />
       <div className="w-full max-w-6xl flex flex-col md:flex-row items-center gap-12 lg:gap-24">
-        
         {/* Left Side: Logo & Tagline */}
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <img
@@ -38,14 +37,13 @@ const ForgotPassword = () => {
             alt="Rently Logo"
             className="w-full max-w-[450px] object-contain drop-shadow-2xl"
           />
-          <p className="text-white text-lg sm:text-xl font-light tracking-wide mt-4 opacity-90">
-            Egypt's #1 Rental Marketplace
-          </p>
         </div>
 
         {/* Right Side: Forgot Password Form */}
         <div className="flex-1 w-full max-w-md bg-transparent">
-          <h1 className="text-3xl font-semibold mb-2 tracking-tight">Forget Password?</h1>
+          <h1 className="text-3xl font-semibold mb-2 tracking-tight">
+            Forget Password?
+          </h1>
           <p className="text-gray-400 text-sm mb-10 leading-relaxed">
             Enter your email address to reset <br /> password
           </p>
@@ -71,7 +69,6 @@ const ForgotPassword = () => {
             </button>
           </form>
         </div>
-
       </div>
     </div>
   );

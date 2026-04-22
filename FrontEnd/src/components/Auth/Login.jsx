@@ -21,13 +21,13 @@ const Login = () => {
 
     try {
       const response = await loginUser(formData.identifier, formData.Password);
-      
+
       // Save token to localStorage
       localStorage.setItem("token", response.token);
       localStorage.setItem("user", JSON.stringify(response.user));
-      
+
       toast.success("Welcome back! Logging in...");
-      
+
       setTimeout(() => {
         navigate("/");
       }, 2000);
@@ -42,7 +42,6 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-br from-[#4A3E85] via-[#2D245B] to-[#0B0915] flex items-center justify-center p-4 sm:p-10 text-white">
       <ToastContainer theme="dark" />
       <div className="w-full max-w-6xl flex flex-col md:flex-row items-center gap-12 lg:gap-24">
-        
         {/* Left Side: Logo & Tagline */}
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <img
@@ -50,15 +49,16 @@ const Login = () => {
             alt="Rently Logo"
             className="w-full max-w-[450px] object-contain drop-shadow-2xl"
           />
-          <p className="text-white text-lg sm:text-xl font-light tracking-wide mt-4 opacity-90">
-            Egypt's #1 Rental Marketplace
-          </p>
         </div>
 
         {/* Right Side: Login Form */}
         <div className="flex-1 w-full max-w-md bg-transparent">
-          <h1 className="text-4xl font-semibold mb-2 tracking-tight">Log in to Rently</h1>
-          <p className="text-gray-400 text-sm mb-12">Enter your details below</p>
+          <h1 className="text-4xl font-semibold mb-2 tracking-tight">
+            Log in to Rently
+          </h1>
+          <p className="text-gray-400 text-sm mb-12">
+            Enter your details below
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-6">
@@ -90,21 +90,27 @@ const Login = () => {
               >
                 {loading ? "Logging in..." : "Log In"}
               </button>
-              
-              <Link to="/forgot-password" size="sm" className="text-white text-sm hover:text-gray-300 transition-colors">
+
+              <Link
+                to="/forgot-password"
+                size="sm"
+                className="text-white text-sm hover:text-gray-300 transition-colors"
+              >
                 Forget Password?
               </Link>
             </div>
 
             <p className="text-center text-sm text-gray-400 mt-10">
               Don't have an account?{" "}
-              <Link to="/signup" className="text-white underline underline-offset-4 hover:text-gray-200">
+              <Link
+                to="/signup"
+                className="text-white underline underline-offset-4 hover:text-gray-200"
+              >
                 Sign Up
               </Link>
             </p>
           </form>
         </div>
-
       </div>
     </div>
   );

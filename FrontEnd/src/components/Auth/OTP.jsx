@@ -51,10 +51,13 @@ const OTP = () => {
     try {
       const response = await verifyOtp(email, otpCode, userData);
       toast.success(response.message || "Code verified successfully!");
-      
+
       // If it's a password reset, go to ResetPassword page
       if (location.state?.isReset) {
-        setTimeout(() => navigate("/reset-password", { state: { email, otp: otpCode } }), 1500);
+        setTimeout(
+          () => navigate("/reset-password", { state: { email, otp: otpCode } }),
+          1500,
+        );
       } else {
         setTimeout(() => navigate("/login"), 1500);
       }
@@ -69,7 +72,6 @@ const OTP = () => {
     <div className="min-h-screen bg-gradient-to-br from-[#4A3E85] via-[#2D245B] to-[#0B0915] flex items-center justify-center p-4 sm:p-10 text-white">
       <ToastContainer theme="dark" />
       <div className="w-full max-w-6xl flex flex-col md:flex-row items-center gap-12 lg:gap-24">
-        
         {/* Left Side: Logo & Tagline */}
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <img
@@ -77,14 +79,13 @@ const OTP = () => {
             alt="Rently Logo"
             className="w-full max-w-[450px] object-contain drop-shadow-2xl"
           />
-          <p className="text-white text-lg sm:text-xl font-light tracking-wide mt-4 opacity-90">
-            Egypt's #1 Rental Marketplace
-          </p>
         </div>
 
         {/* Right Side: OTP Form */}
         <div className="flex-1 w-full max-w-md bg-transparent">
-          <h1 className="text-3xl font-semibold mb-2 tracking-tight">Enter verification code</h1>
+          <h1 className="text-3xl font-semibold mb-2 tracking-tight">
+            Enter verification code
+          </h1>
           <p className="text-gray-400 text-sm mb-10 leading-relaxed">
             Please enter the code we just sent to email <br />
             <span className="text-white font-medium">{email}</span>
@@ -109,7 +110,10 @@ const OTP = () => {
 
             <div className="text-center space-y-2">
               <p className="text-sm text-gray-400">Don't receive OTP?</p>
-              <button type="button" className="text-white text-sm underline underline-offset-4 hover:text-gray-200 transition-colors">
+              <button
+                type="button"
+                className="text-white text-sm underline underline-offset-4 hover:text-gray-200 transition-colors"
+              >
                 Resend code
               </button>
             </div>
@@ -123,7 +127,6 @@ const OTP = () => {
             </button>
           </form>
         </div>
-
       </div>
     </div>
   );
