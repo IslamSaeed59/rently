@@ -8,12 +8,12 @@ const Navbar = () => {
       <nav className="w-full bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 lg:px-10 py-3 flex justify-between items-center gap-4">
           {/* Logo Container - Standard & Natural */}
-          <div className="flex-shrink-0 flex items-center">
+          <div className="flex-shrink-0 flex items-center h-16">
             <Link to="/" className="block">
               <img
                 src="/Small-logo.png"
                 alt="Rently Logo"
-                className="h-15 w-auto object-contain"
+                className="h-35 w-auto object-contain"
               />
             </Link>
           </div>
