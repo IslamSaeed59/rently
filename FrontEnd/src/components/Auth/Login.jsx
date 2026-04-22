@@ -25,6 +25,7 @@ const Login = () => {
       // Save token to localStorage
       localStorage.setItem("token", response.token);
       localStorage.setItem("user", JSON.stringify(response.user));
+      window.dispatchEvent(new Event("authChange"));
 
       toast.success("Welcome back! Logging in...");
 
