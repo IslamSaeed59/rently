@@ -19,32 +19,29 @@ const Navbar = () => {
           </div>
 
           {/* Navigation Links */}
-          <ul className="hidden lg:flex items-center gap-8 text-black font-normal text-[15px]">
+          <ul className="hidden lg:flex items-center gap-10 text-[#0B0915] font-medium text-[15px]">
             <li>
-              <Link to="/" className="hover:text-gray-600 transition-colors">
+              <Link to="/" className="relative group py-2">
                 Home
+                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#4A3E85] transition-all duration-300 group-hover:w-full"></span>
               </Link>
             </li>
             <li>
-              <Link
-                to="/contact"
-                className="hover:text-gray-600 transition-colors"
-              >
+              <Link to="/contact" className="relative group py-2">
                 Contact
+                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#4A3E85] transition-all duration-300 group-hover:w-full"></span>
               </Link>
             </li>
             <li>
-              <Link
-                to="/about"
-                className="hover:text-gray-600 transition-colors"
-              >
+              <Link to="/about" className="relative group py-2">
                 About
+                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#4A3E85] transition-all duration-300 group-hover:w-full"></span>
               </Link>
             </li>
             <li>
               <Link
                 to="/signup"
-                className="hover:text-gray-600 transition-colors font-medium"
+                className="bg-[#0B0915] text-white px-6 py-2 rounded-full hover:bg-[#4A3E85] transition-all duration-300 shadow-lg active:scale-95"
               >
                 Sign Up
               </Link>
@@ -52,14 +49,16 @@ const Navbar = () => {
           </ul>
 
           {/* Search Bar and Functional Icons */}
-          <div className="flex items-center gap-3 md:gap-5">
+          <div className="flex items-center gap-4">
             <div className="relative group hidden md:block">
               <input
                 type="text"
                 placeholder="What are you looking for?"
-                className="bg-[#F5F5F5] py-2 pl-4 pr-10 rounded text-sm w-60 focus:outline-none border border-transparent focus:border-gray-200 transition-all"
+                className="bg-gray-50 border border-gray-100 py-2.5 pl-5 pr-12 rounded-full text-sm w-64 focus:outline-none focus:ring-2 focus:ring-[#4A3E85]/20 focus:bg-white focus:border-[#4A3E85] transition-all duration-300 placeholder:text-gray-400 shadow-sm"
               />
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-black transition-colors" />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-[#0B0915] rounded-full text-white group-focus-within:bg-[#4A3E85] transition-colors cursor-pointer">
+                <Search className="w-4 h-4" />
+              </div>
             </div>
           </div>
         </div>
