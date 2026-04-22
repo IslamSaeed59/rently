@@ -65,7 +65,7 @@ const SingUp = () => {
         navigate("/verify-otp", {
           state: { email: formData.Email, userData: payload },
         });
-      }, 1500);
+      }, 1000);
     } catch (error) {
       toast.error(error.message || "Registration failed");
     } finally {

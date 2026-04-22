@@ -21,7 +21,7 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (passwords.newPassword !== passwords.confirmPassword) {
       toast.error("Passwords do not match");
       return;
@@ -31,7 +31,7 @@ const ResetPassword = () => {
     try {
       await resetPassword(email, otp, passwords.newPassword);
       toast.success("Password reset successful!");
-      setTimeout(() => navigate("/login"), 2000);
+      setTimeout(() => navigate("/login"), 1000);
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     } finally {
@@ -43,7 +43,6 @@ const ResetPassword = () => {
     <div className="min-h-screen bg-gradient-to-br from-[#4A3E85] via-[#2D245B] to-[#0B0915] flex items-center justify-center p-4 sm:p-10 text-white">
       <ToastContainer theme="dark" />
       <div className="w-full max-w-6xl flex flex-col md:flex-row items-center gap-12 lg:gap-24">
-        
         {/* Left Side: Logo & Tagline */}
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <img
@@ -58,11 +57,13 @@ const ResetPassword = () => {
 
         {/* Right Side: Reset Password Form */}
         <div className="flex-1 w-full max-w-md bg-transparent">
-          <h1 className="text-3xl font-semibold mb-3 tracking-tight">Create new password</h1>
+          <h1 className="text-3xl font-semibold mb-3 tracking-tight">
+            Create new password
+          </h1>
           <p className="text-gray-400 text-[11px] mb-10 leading-relaxed max-w-[300px]">
-            Type your new strong password. Your password must include: 
-            One capital letter & one small letter at least, 
-            One special character & Minimum 8 digits long.
+            Type your new strong password. Your password must include: One
+            capital letter & one small letter at least, One special character &
+            Minimum 8 digits long.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -96,7 +97,6 @@ const ResetPassword = () => {
             </button>
           </form>
         </div>
-
       </div>
     </div>
   );
