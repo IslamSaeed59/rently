@@ -135,6 +135,8 @@ const authController = {
           Firstname: user.Firstname,
           LastName: user.LastName,
           Email: user.Email,
+          governorate: user.governorate,
+          city: user.city,
         },
       });
     } catch (error) {

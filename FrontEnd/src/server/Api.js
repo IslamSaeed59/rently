@@ -20,7 +20,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response Interceptor: Handle session expiration (401)
@@ -34,7 +34,7 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // Register (Send OTP)
@@ -92,6 +92,95 @@ export const resetPassword = async (email, otp, newPassword) => {
       otp,
       newPassword,
     });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+// getProfile
+export const getProfile = async () => {
+  try {
+    const response = await api.get("profile");
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+// updateProfile
+export const updateProfile = async (userData) => {
+  try {
+    const response = await api.put("profile", userData);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+// change-password
+export const changePassword = async (password, confirmPassword) => {
+  try {
+    const response = await api.put("profile/change-password", {
+      password,
+      confirmPassword,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+// Categories API
+export const createCategory = async (categoryData) => {
+  try {
+    const response = await api.post("categories", categoryData);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const getAllCategories = async (params) => {
+  try {
+    const response = await api.get("categories", { params });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const getCategoryById = async (id) => {
+  try {
+    const response = await api.get(`categories/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const updateCategory = async (id, categoryData) => {
+  try {
+    const response = await api.put(`categories/${id}`, categoryData);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const deleteCategory = async (id) => {
+  try {
+    const response = await api.delete(`categories/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+// Users API
+export const getAllUsers = async () => {
+  try {
+    const response = await api.get("users");
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
