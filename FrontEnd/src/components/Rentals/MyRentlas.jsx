@@ -17,19 +17,21 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { getMyRequests, updateRequestStatus } from "../../server/ProductsApi";
+import { getAllCategories } from "../../server/Api";
 
 const MyRentals = () => {
   const [rentals, setRentals] = useState([]);
+  const [categories, setCategories] = useState(["ALL"]);
   const [filteredRentals, setFilteredRentals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [sortBy, setSortBy] = useState("latest");
-  const [activeTab, setActiveTab] = useState("all"); // all, active, pending, history
+  const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
-    fetchRentals();
-    const interval = setInterval(fetchRentals, 1000); // Refresh every second for smooth countdowns
+    fetchInitialData();
+    const interval = setInterval(fetchRentals, 5000); // Background refresh every 5s
     return () => clearInterval(interval);
   }, []);
 
@@ -37,14 +39,31 @@ const MyRentals = () => {
     applyFilters();
   }, [rentals, searchQuery, selectedCategory, sortBy, activeTab]);
 
+  const fetchInitialData = async () => {
+    setLoading(true);
+    try {
+      const [requestsData, categoriesData] = await Promise.all([
+        getMyRequests(),
+        getAllCategories()
+      ]);
+      setRentals(requestsData);
+      
+      // Get all main categories (no parent_id)
+      const mainCats = categoriesData.filter(c => !c.parent_id);
+      setCategories([{ id: "ALL", name: "All Products" }, ...mainCats]);
+    } catch (error) {
+      console.error("Fetch initial data error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchRentals = async () => {
     try {
       const data = await getMyRequests();
       setRentals(data);
     } catch (error) {
       console.error("Fetch rentals error:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -114,7 +133,7 @@ const MyRentals = () => {
 
     // Category Filter
     if (selectedCategory !== "ALL") {
-      result = result.filter(r => r.category_name?.toUpperCase() === selectedCategory);
+      result = result.filter(r => r.category_id?.toString() === selectedCategory.toString());
     }
 
     // Search Filter
@@ -127,6 +146,7 @@ const MyRentals = () => {
     // Sorting
     if (sortBy === "latest") result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     else if (sortBy === "price-low") result.sort((a, b) => a.total_price - b.total_price);
+    else if (sortBy === "price-high") result.sort((a, b) => b.total_price - a.total_price);
 
     setFilteredRentals(result);
   };
@@ -141,8 +161,6 @@ const MyRentals = () => {
       toast.error("Error cancelling request");
     }
   };
-
-  const categories = ["ALL", "Electronics", "Sports & Fitness", "Cameras & Gear", "Events"];
 
   if (loading) {
     return (
@@ -224,12 +242,12 @@ const MyRentals = () => {
               <div className="flex flex-col gap-4">
                 {categories.map((cat) => (
                   <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat.toUpperCase())}
-                    className={`flex items-center justify-between group transition-all ${selectedCategory === cat.toUpperCase() ? 'text-[#050F2A]' : 'text-gray-500 hover:text-gray-900'}`}
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`flex items-center justify-between group transition-all ${selectedCategory.toString() === cat.id.toString() ? 'text-[#050F2A]' : 'text-gray-500 hover:text-gray-900'}`}
                   >
-                    <span className="text-[14px] font-bold">{cat}</span>
-                    <div className={`w-2 h-2 rounded-full transition-all ${selectedCategory === cat.toUpperCase() ? 'bg-[#050F2A] scale-150' : 'bg-gray-100 group-hover:bg-gray-300'}`}></div>
+                    <span className="text-[14px] font-bold">{cat.name || cat}</span>
+                    <div className={`w-2 h-2 rounded-full transition-all ${selectedCategory.toString() === cat.id.toString() ? 'bg-[#050F2A] scale-150' : 'bg-gray-100 group-hover:bg-gray-300'}`}></div>
                   </button>
                 ))}
               </div>

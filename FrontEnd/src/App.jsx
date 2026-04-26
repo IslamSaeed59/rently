@@ -17,12 +17,16 @@ import Profile from "./components/Profile/Profile";
 import MyListings from "./components/Profile/My Listings/MyListings";
 import Home from "./Pages/Home/Home";
 import Products from "./Pages/Products/Products";
+import SearchPage from "./components/Home/SearchPage";
 import CreateProducts from "./components/Products/CreateProducts";
 import EditProducts from "./components/Products/EditProducts";
 import ProductDetails from "./components/Home/ProductDetails";
 import BookingRequests from "./components/Rentals/BookingRequests";
 import MyRentals from "./components/Rentals/MyRentlas";
-
+import CategoriesProducts from "./components/Categories/CategoriesProducts";
+import CheckOut from "./components/CheckOut/CheckOut";
+import Favorites from "./components/Profile/Favorites";
+import Chat from "./Pages/Chat/Chat";
 
 import AdminLayout from "./Layout/AdminLayout";
 import AdminDashboard from "./Pages/Admin/Dashboard";
@@ -32,6 +36,7 @@ import Categories from "./Pages/Admin/Categories/Categories";
 import CreatCategories from "./components/Admin/Categories/CreatCategories";
 import EditCategories from "./components/Admin/Categories/EditCategories";
 import Customers from "./Pages/Admin/Customers/Customers";
+import ALLChat from "./components/Admin/Messages/ALLChat";
 
 const App = () => {
   return (
@@ -41,6 +46,8 @@ const App = () => {
         <Routes>
           <Route path="/" element={<UserLayout />}>
             <Route index element={<Home />} />
+            <Route path="search" element={<SearchPage />} />
+            <Route path="category/:slug" element={<CategoriesProducts />} />
             <Route path="product/:id" element={<ProductDetails />} />
 
             {/* Protected Routes: Only for logged-in users */}
@@ -52,7 +59,9 @@ const App = () => {
               <Route path="products/edit/:id" element={<EditProducts />} />
               <Route path="profile/booking-requests" element={<BookingRequests />} />
               <Route path="profile/my-rentals" element={<MyRentals />} />
-
+              <Route path="checkout" element={<CheckOut />} />
+              <Route path="profile/favorites" element={<Favorites />} />
+              <Route path="chat" element={<Chat />} />
             </Route>
 
             {/* Public Routes: Only for guests (non-logged-in users) */}
@@ -77,7 +86,7 @@ const App = () => {
 
               <Route path="customers" element={<Customers />} />
               <Route path="analytics" element={<div>Analytics View</div>} />
-              <Route path="messages" element={<div>Messages View</div>} />
+              <Route path="messages" element={<ALLChat />} />
               <Route path="settings" element={<div>Admin Settings</div>} />
             </Route>
           </Route>

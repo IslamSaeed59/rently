@@ -13,12 +13,16 @@ import {
   User,
   Bell,
   ShieldCheck,
+  MessageSquare,
 } from "lucide-react";
+import { getConversations } from "../../server/ChatApi";
+import { io } from "socket.io-client";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
 
   const isAdmin = user?.Email === "admin@gmail.com";
@@ -43,6 +47,33 @@ const Navbar = () => {
     window.addEventListener("authChange", checkAuth);
     return () => window.removeEventListener("authChange", checkAuth);
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      fetchUnreadCount();
+      
+      const socket = io("http://localhost:9000");
+      socket.emit("join_user", user.id);
+      
+      socket.on("new_notification", (notif) => {
+        if (notif.type === "new_message") {
+          fetchUnreadCount();
+        }
+      });
+
+      return () => socket.disconnect();
+    }
+  }, [isLoggedIn, user]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const convs = await getConversations();
+      const count = convs.reduce((acc, curr) => acc + (curr.unread_count || 0), 0);
+      setUnreadCount(count);
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -88,26 +119,23 @@ const Navbar = () => {
           </ul>
 
           {/* Search Bar */}
-          <div className="hidden lg:flex flex-1 max-w-[340px] ml-auto relative">
-            <span className="absolute left-[13px] top-1/2 -translate-y-1/2 flex text-white/50">
-              <Search size={15} />
-            </span>
-            <input
-              type="text"
-              placeholder="What are you looking for?"
-              className="w-full bg-white/10 border border-white/[0.18] rounded-[24px] py-[9px] pr-4 pl-10 text-white text-[13px] outline-none placeholder:text-white/50 transition-all duration-[220ms] ease-[cubic-bezier(.4,0,.2,1)] focus:bg-white/[0.16] focus:border-white/40"
-            />
-          </div>
+          <div className="hidden lg:flex flex-1 max-w-[340px] ml-auto relative"></div>
 
           {/* Desktop Right Side (Auth & Actions) */}
           <div className="hidden lg:flex items-center gap-5 ml-3">
             {isLoggedIn ? (
               <>
                 <Link
-                  to="#"
-                  className="flex text-white/80 hover:text-white transition-all duration-[220ms] ease-[cubic-bezier(.4,0,.2,1)]"
+                  to="/chat"
+                  className="flex text-white/80 hover:text-white transition-all duration-[220ms] ease-[cubic-bezier(.4,0,.2,1)] relative"
+                  title="Messages"
                 >
-                  <ShoppingCart size={18} />
+                  <MessageSquare size={18} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[#050F2A]">
+                      {unreadCount}
+                    </span>
+                  )}
                 </Link>
                 <Link
                   to="/profile"
@@ -252,6 +280,26 @@ const Navbar = () => {
             </div>
             <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-white/80 transition-colors" />
           </Link>
+          {isLoggedIn && (
+            <Link
+              to="/chat"
+              className="flex items-center justify-between px-4 py-4 text-white/85 hover:bg-white/10 hover:text-white rounded-2xl transition-colors group"
+              onClick={() => setIsOpen(false)}
+            >
+              <div className="flex items-center gap-4 font-semibold text-base">
+                <MessageSquare className="w-5 h-5 text-white/60 group-hover:text-white" />
+                Messages
+              </div>
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    {unreadCount}
+                  </span>
+                )}
+                <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-white/80 transition-colors" />
+              </div>
+            </Link>
+          )}
 
           {isAdmin && (
             <Link

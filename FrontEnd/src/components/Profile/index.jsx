@@ -9,6 +9,7 @@ import {
   LogOut,
   ChevronRight,
   Loader2,
+  Heart,
 } from "lucide-react";
 import { getProfile } from "../../server/Api";
 
@@ -63,11 +64,17 @@ const ProfileIndex = () => {
       path: "/profile/booking-requests",
     },
     {
-      icon: <Receipt size={18} className="text-white" strokeWidth={2.5} />,
-      title: "Order History",
-      description: "View receipts and transaction history",
-      path: "#",
+      icon: <Heart size={18} className="text-white" strokeWidth={2.5} />,
+      title: "My Favorites",
+      description: "Items you've saved for later",
+      path: "/profile/favorites",
     },
+    // {
+    //   icon: <Receipt size={18} className="text-white" strokeWidth={2.5} />,
+    //   title: "Order History",
+    //   description: "View receipts and transaction history",
+    //   path: "#",
+    // },
   ];
 
   if (loading) {

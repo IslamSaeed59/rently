@@ -19,6 +19,7 @@ const CreateProducts = () => {
     location: "",
     deposit_amount: 0,
   });
+  const [selectedMainCategory, setSelectedMainCategory] = useState("");
 
   const [images, setImages] = useState([]); // { file, preview }
 
@@ -53,6 +54,20 @@ const CreateProducts = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleMainCategoryChange = (e) => {
+    const value = e.target.value;
+    setSelectedMainCategory(value);
+    setFormData((prev) => ({ ...prev, category_id: value }));
+  };
+
+  const handleSubCategoryChange = (e) => {
+    const value = e.target.value;
+    setFormData((prev) => ({ 
+      ...prev, 
+      category_id: value || selectedMainCategory 
+    }));
   };
 
   const handleFiles = (files) => {
@@ -230,19 +245,40 @@ const CreateProducts = () => {
               <label className="block text-[14px] font-semibold mb-2 text-[#334155]">
                 Category
               </label>
-              <select
-                name="category_id"
-                value={formData.category_id}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-[12px] border border-[#E2E8F0] focus:border-[#6366F1] outline-none transition-all appearance-none bg-no-repeat bg-[right_1rem_center]"
-              >
-                <option value="">Select Category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+              <div className="grid grid-cols-1 gap-4">
+                {/* Main Category */}
+                <select
+                  value={selectedMainCategory}
+                  onChange={handleMainCategoryChange}
+                  className="w-full px-4 py-3 rounded-[12px] border border-[#E2E8F0] focus:border-[#6366F1] outline-none transition-all appearance-none bg-no-repeat bg-[right_1rem_center]"
+                >
+                  <option value="">Select Main Category</option>
+                  {categories
+                    .filter((cat) => !cat.parent_id)
+                    .map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                </select>
+
+                {/* Sub Category - Only shows if main category is selected and has children */}
+                {selectedMainCategory && categories.some(c => c.parent_id?.toString() === selectedMainCategory.toString()) && (
+                  <select
+                    onChange={handleSubCategoryChange}
+                    className="w-full px-4 py-3 rounded-[12px] border border-[#E2E8F0] focus:border-[#6366F1] outline-none transition-all appearance-none bg-no-repeat bg-[right_1rem_center]"
+                  >
+                    <option value="">Select Sub Category (Optional)</option>
+                    {categories
+                      .filter((cat) => cat.parent_id?.toString() === selectedMainCategory.toString())
+                      .map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                  </select>
+                )}
+              </div>
             </div>
           </div>
 

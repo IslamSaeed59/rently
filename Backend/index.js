@@ -18,9 +18,22 @@ const productRoutes = require("./Src/Routes/products/ProductsRoutes");
 const rentalRequestsRoutes = require("./Src/Routes/Rentals/RentalRequestsRoutes");
 const rentalsRoutes = require("./Src/Routes/Rentals/RentalsRoutes");
 const availabilityRoutes = require("./Src/Routes/Rentals/AvailabilityRoutes");
+const favoriteRoutes = require("./Src/Routes/FavoriteRoutes");
+const chatRoutes = require("./Src/Routes/ChatRoutes");
 
+
+const http = require("http");
+const { Server } = require("socket.io");
+const socketHandler = require("./Src/Socket/socketHandler");
 
 const PORT = process.env.PORT || 9000;
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*", // Adjust as needed for production
+    methods: ["GET", "POST"],
+  },
+});
 
 app.use(express.json());
 app.use("/api/auth", authRoutes);
@@ -31,12 +44,16 @@ app.use("/api/products", productRoutes);
 app.use("/api/rental-requests", rentalRequestsRoutes);
 app.use("/api/rentals", rentalsRoutes);
 app.use("/api/availability", availabilityRoutes);
+app.use("/api/favorites", favoriteRoutes);
+app.use("/api/chat", chatRoutes);
 
+// Initialize Socket Handler
+socketHandler(io);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running http://localhost:${PORT}`);
 });

@@ -8,11 +8,11 @@ import {
   ChevronRight,
   MessageSquare,
   ShieldCheck,
-  MapPin,
   Clock,
   Calendar as CalendarIcon,
 } from "lucide-react";
-import { getProductById, getProductAvailability, createRentalRequest } from "../../server/ProductsApi";
+import { getProductById, getProductAvailability, toggleFavorite, checkFavoriteStatus } from "../../server/ProductsApi";
+import { initiateChat } from "../../server/ChatApi";
 
 const FunctionalCalendar = ({ onDateChange, blockedDates = [] }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -243,7 +243,7 @@ const ProductDetails = () => {
   const [returnTime, setReturnTime] = useState("17:00");
   const [rentalType, setRentalType] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -273,6 +273,13 @@ const ProductDetails = () => {
 
         // Fetch availability
         const availData = await getProductAvailability(id);
+        
+        // Fetch favorite status if logged in
+        const token = localStorage.getItem("token");
+        if (token) {
+          const { isFavorite } = await checkFavoriteStatus(id);
+          setIsFavorite(isFavorite);
+        }
         
         // Transform availability data: 
         // 1. Identify "Full Day" blocks (where a booking spans across days)
@@ -353,7 +360,7 @@ const ProductDetails = () => {
 
   const totalPrice = calculateTotal();
 
-  const handleRentNow = async () => {
+  const handleRentNow = () => {
     const token = localStorage.getItem("token");
     if (!token) {
       toast.info("Please login to rent this product.");
@@ -366,37 +373,72 @@ const ProductDetails = () => {
       return;
     }
 
-    const formatToMySQL = (date) => {
-      const pad = (num) => num.toString().padStart(2, '0');
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-    };
+    const startDateTime = new Date(rentalDates.start);
+    const [sh, sm] = pickupTime.split(':');
+    startDateTime.setHours(parseInt(sh), parseInt(sm), 0);
 
-    setIsSubmitting(true);
+    const endDateTime = rentalDates.end ? new Date(rentalDates.end) : new Date(rentalDates.start);
+    const [eh, em] = returnTime.split(':');
+    endDateTime.setHours(parseInt(eh), parseInt(em), 0);
+
+    navigate("/checkout", {
+      state: {
+        product,
+        rentalDates,
+        pickupTime,
+        returnTime,
+        rentalType,
+        paymentMethod,
+        totalPrice,
+        startDateTime: startDateTime.toISOString(),
+        endDateTime: endDateTime.toISOString()
+      }
+    });
+  };
+
+  const handleToggleFavorite = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.info("Please login to manage favorites.");
+      navigate("/login");
+      return;
+    }
+
     try {
-      const startDateTime = new Date(rentalDates.start);
-      const [sh, sm] = pickupTime.split(':');
-      startDateTime.setHours(parseInt(sh), parseInt(sm), 0);
-
-      const endDateTime = rentalDates.end ? new Date(rentalDates.end) : new Date(rentalDates.start);
-      const [eh, em] = returnTime.split(':');
-      endDateTime.setHours(parseInt(eh), parseInt(em), 0);
-
-      const payload = {
-        product_id: product.id,
-        start_datetime: formatToMySQL(startDateTime),
-        end_datetime: formatToMySQL(endDateTime),
-        rental_type: rentalType,
-        total_price: totalPrice,
-        payment_method: paymentMethod,
-      };
-
-      await createRentalRequest(payload);
-      toast.success("Rental request submitted! Waiting for seller approval.");
-      navigate("/profile?tab=requests"); // Assuming this tab exists or just redirect to profile
+      const res = await toggleFavorite(product.id);
+      setIsFavorite(res.isFavorite);
+      toast.success(res.message);
     } catch (error) {
-      toast.error(error.message || "Failed to submit rental request");
-    } finally {
-      setIsSubmitting(false);
+      toast.error("Failed to update favorites");
+    }
+  };
+
+  const handleChatNow = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.info("Please login to chat with the seller.");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      // Initiate chat with product context
+      const res = await initiateChat({
+        receiver_id: product.seller_id,
+        product_id: product.id
+      });
+      
+      // Navigate to chat page with conversation state
+      navigate("/chat", { 
+        state: { 
+          conversationId: res.conversationId,
+          receiverId: product.seller_id,
+          productId: product.id
+        } 
+      });
+    } catch (error) {
+      console.error("Chat initiation error:", error);
+      toast.error("Failed to start chat with seller");
     }
   };
 
@@ -416,12 +458,6 @@ const ProductDetails = () => {
     );
   }
 
-  const price =
-    product.price_per_hour ||
-    product.price_per_day ||
-    product.price_per_week ||
-    product.price_per_month ||
-    0;
 
   // Format description into paragraphs
   const descParagraphs = product.description
@@ -496,17 +532,9 @@ const ProductDetails = () => {
               {/* Main Image */}
               <div className="flex-1 bg-[#F8FAFC] rounded-xl relative flex items-center justify-center h-[460px]">
                 <button 
-                  onClick={() => {
-                    const token = localStorage.getItem("token");
-                    if (!token) {
-                      toast.info("Please login to add to favorites.");
-                      navigate("/login");
-                      return;
-                    }
-                    toast.success("Added to favorites!");
-                  }}
-                  className="absolute top-4 right-4 p-2 bg-white rounded border border-gray-200 text-gray-500 hover:text-red-500 transition-colors shadow-sm">
-                  <Heart size={20} />
+                  onClick={handleToggleFavorite}
+                  className={`absolute top-4 right-4 p-2 bg-white rounded border transition-colors shadow-sm ${isFavorite ? "text-red-500 border-red-100 bg-red-50" : "border-gray-200 text-gray-500 hover:text-red-500"}`}>
+                  <Heart size={20} className={isFavorite ? "fill-current" : ""} />
                 </button>
                 <img
                   src={mainImage}
@@ -547,6 +575,13 @@ const ProductDetails = () => {
                 (150 Reviews)
               </span>
               <span className="text-gray-300 mx-1">|</span>
+              <button 
+                onClick={handleToggleFavorite}
+                className="flex items-center gap-1.5 text-[13px] font-bold text-[#050F2A] hover:text-red-500 transition-colors"
+              >
+                <Heart size={14} className={isFavorite ? "fill-current text-red-500" : ""} />
+                {isFavorite ? "Saved" : "Save"}
+              </button>
             </div>
 
             {/* Price Options */}
@@ -742,20 +777,11 @@ const ProductDetails = () => {
               </div>
             )}
 
-            {/* Rent Button */}
             <button
               onClick={handleRentNow}
-              disabled={isSubmitting}
-              className={`w-full bg-[#050F2A] text-white font-bold py-4 rounded-xl mb-6 hover:opacity-90 transition-opacity flex items-center justify-center gap-2 ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""}`}
+              className="w-full bg-[#050F2A] text-white font-bold py-4 rounded-xl mb-6 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
             >
-              {isSubmitting ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Processing...
-                </>
-              ) : (
-                "Rent Now"
-              )}
+              Rent Now
             </button>
 
             {/* Seller Card */}
@@ -783,15 +809,7 @@ const ProductDetails = () => {
                 </div>
               </div>
               <button 
-                onClick={() => {
-                  const token = localStorage.getItem("token");
-                  if (!token) {
-                    toast.info("Please login to chat with the seller.");
-                    navigate("/login");
-                    return;
-                  }
-                  alert("Opening chat...");
-                }}
+                onClick={handleChatNow}
                 className="bg-[#050F2A] text-white text-[11px] font-bold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity flex items-center gap-1.5">
                 <MessageSquare size={12} />
                 Chat Now

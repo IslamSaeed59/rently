@@ -227,4 +227,32 @@ export const deleteBlackout = async (id) => {
   }
 };
 
+// Favorites
+export const toggleFavorite = async (productId) => {
+  try {
+    const response = await ProductsApi.post("favorites/toggle", { product_id: productId });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const getMyFavorites = async () => {
+  try {
+    const response = await ProductsApi.get("favorites");
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const checkFavoriteStatus = async (productId) => {
+  try {
+    const response = await ProductsApi.get(`favorites/status/${productId}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
 export default ProductsApi;
