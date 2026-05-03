@@ -27,8 +27,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // Clear storage and redirect to login if unauthorized
+    // Only redirect if unauthorized and NOT on the login/register pages
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !error.config.url.includes("auth/login") &&
+      !error.config.url.includes("auth/google-login")
+    ) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.href = "/login";
@@ -74,6 +79,16 @@ export const loginUser = async (identifier, password) => {
   }
 };
 
+// Google Login
+export const googleLogin = async (credential) => {
+  try {
+    const response = await api.post("auth/google-login", { credential });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
 // Forgot Password
 export const forgotPassword = async (email) => {
   try {
@@ -98,6 +113,20 @@ export const resetPassword = async (email, otp, newPassword) => {
   }
 };
 
+// ID Verification
+export const verifyId = async (formData) => {
+  try {
+    const response = await api.post("auth/verify-id", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
 // getProfile
 export const getProfile = async () => {
   try {
@@ -112,6 +141,20 @@ export const getProfile = async () => {
 export const updateProfile = async (userData) => {
   try {
     const response = await api.put("profile", userData);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+// uploadProfileImage
+export const uploadProfileImage = async (formData) => {
+  try {
+    const response = await api.post("profile/upload-image", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
@@ -181,6 +224,16 @@ export const deleteCategory = async (id) => {
 export const getAllUsers = async () => {
   try {
     const response = await api.get("users");
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+// AI API
+export const chatWithAI = async (message) => {
+  try {
+    const response = await api.post("ai/chat", { message });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;

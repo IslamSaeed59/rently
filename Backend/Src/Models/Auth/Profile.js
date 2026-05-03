@@ -20,7 +20,7 @@ const Profile = {
   getProfileByUserId: async (userId) => {
     const query = `
       SELECT 
-        u.Firstname, u.LastName, u.Email, u.PhoneNumber, 
+        u.Firstname, u.LastName, u.Email, u.PhoneNumber, u.DateofBrith, u.Gender, 
         p.* 
       FROM profiles p 
       JOIN users u ON p.user_id = u.id 
@@ -37,6 +37,8 @@ const Profile = {
       LastName,
       Email,
       PhoneNumber,
+      DateofBrith,
+      Gender,
       bio,
       governorate,
       city,
@@ -49,8 +51,8 @@ const Profile = {
 
       // Update users table
       await connection.query(
-        "UPDATE users SET Firstname = COALESCE(?, Firstname), LastName = COALESCE(?, LastName), Email = COALESCE(?, Email), PhoneNumber = COALESCE(?, PhoneNumber) WHERE id = ?",
-        [Firstname, LastName, Email, PhoneNumber, userId],
+        "UPDATE users SET Firstname = COALESCE(?, Firstname), LastName = COALESCE(?, LastName), Email = COALESCE(?, Email), PhoneNumber = COALESCE(?, PhoneNumber), DateofBrith = COALESCE(?, DateofBrith), Gender = COALESCE(?, Gender) WHERE id = ?",
+        [Firstname, LastName, Email, PhoneNumber, DateofBrith, Gender, userId],
       );
 
       // Update profiles table

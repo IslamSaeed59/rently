@@ -35,10 +35,10 @@ const Footer = () => {
               <li className="leading-relaxed">Cairo, EL-shorouk</li>
               <li>
                 <a
-                  href="mailto:Rentlybusiness@gmail.com"
+                  href="mailto:Rentlyprojectt@gmail.com"
                   className="hover:text-white transition-colors"
                 >
-                  Rentlybusiness@gmail.com
+                  Rentlyprojectt@gmail.com
                 </a>
               </li>
               <li>
@@ -70,11 +70,6 @@ const Footer = () => {
                   className="hover:text-white transition-colors"
                 >
                   Login / Register
-                </Link>
-              </li>
-              <li>
-                <Link to="/cart" className="hover:text-white transition-colors">
-                  Cart
                 </Link>
               </li>
             </ul>
@@ -122,29 +117,38 @@ const Footer = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 {/* Placeholder for QR Code */}
-                <div className="w-20 h-20 bg-white p-1 rounded">
+                <Link
+                  to="/coming-soon"
+                  className="w-20 h-20 bg-white p-1 rounded hover:scale-105 transition-transform"
+                >
                   <img
                     src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=RentlyApp"
                     alt="QR Code"
                     className="w-full h-full"
                   />
-                </div>
+                </Link>
                 {/* Store Links */}
                 <div className="flex flex-col gap-2">
-                  <a href="#" className="hover:opacity-80 transition-opacity">
+                  <Link
+                    to="/coming-soon"
+                    className="hover:opacity-80 transition-opacity hover:scale-105 transition-transform"
+                  >
                     <img
                       src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
                       alt="Google Play"
                       className="h-8"
                     />
-                  </a>
-                  <a href="#" className="hover:opacity-80 transition-opacity">
+                  </Link>
+                  <Link
+                    to="/coming-soon"
+                    className="hover:opacity-80 transition-opacity hover:scale-105 transition-transform"
+                  >
                     <img
                       src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
                       alt="App Store"
                       className="h-8"
                     />
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

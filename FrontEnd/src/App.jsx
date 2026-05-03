@@ -8,10 +8,12 @@ import Login from "./components/Auth/Login";
 import OTP from "./components/Auth/OTP";
 import ForgotPassword from "./components/Auth/ForgotPassword";
 import ResetPassword from "./components/Auth/ResetPassword";
+import IdentityVerification from "./components/Auth/IdentityVerification";
 
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import PublicRoute from "./components/Auth/PublicRoute";
 import NotFound from "./Pages/NotFound";
+import ComingSoon from "./Pages/ComingSoon";
 import ProfileIndex from "./components/Profile/index";
 import Profile from "./components/Profile/Profile";
 import MyListings from "./components/Profile/My Listings/MyListings";
@@ -27,6 +29,11 @@ import CategoriesProducts from "./components/Categories/CategoriesProducts";
 import CheckOut from "./components/CheckOut/CheckOut";
 import Favorites from "./components/Profile/Favorites";
 import Chat from "./Pages/Chat/Chat";
+import Contact from "./Pages/Contact/Contact";
+import About from "./Pages/About/About";
+import FAQ from "./Pages/FAQ/FAQ";
+import PrivacyPolicy from "./Pages/Legal/PrivacyPolicy";
+import TermsOfUse from "./Pages/Legal/TermsOfUse";
 
 import AdminLayout from "./Layout/AdminLayout";
 import AdminDashboard from "./Pages/Admin/Dashboard";
@@ -49,6 +56,11 @@ const App = () => {
             <Route path="search" element={<SearchPage />} />
             <Route path="category/:slug" element={<CategoriesProducts />} />
             <Route path="product/:id" element={<ProductDetails />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="about" element={<About />} />
+            <Route path="faq" element={<FAQ />} />
+            <Route path="privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="terms-of-use" element={<TermsOfUse />} />
 
             {/* Protected Routes: Only for logged-in users */}
             <Route element={<ProtectedRoute />}>
@@ -62,6 +74,7 @@ const App = () => {
               <Route path="checkout" element={<CheckOut />} />
               <Route path="profile/favorites" element={<Favorites />} />
               <Route path="chat" element={<Chat />} />
+              <Route path="verify-identity" element={<IdentityVerification />} />
             </Route>
 
             {/* Public Routes: Only for guests (non-logged-in users) */}
@@ -91,8 +104,9 @@ const App = () => {
             </Route>
           </Route>
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+           <Route path="/coming-soon" element={<ComingSoon />} />
+           <Route path="*" element={<NotFound />} />
+         </Routes>
       </BrowserRouter>
     </>
   );

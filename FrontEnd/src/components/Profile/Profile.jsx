@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { getProfile, updateProfile, changePassword } from "../../server/Api";
+import {
+  getProfile,
+  updateProfile,
+  changePassword,
+  uploadProfileImage,
+} from "../../server/Api";
 import { toast } from "react-toastify";
 import {
   User,
@@ -10,6 +15,7 @@ import {
   ChevronRight,
   X,
   Check,
+  Calendar,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import locationsData from "../../locations.json";
@@ -22,6 +28,8 @@ const Profile = () => {
     LastName: "",
     Email: "",
     PhoneNumber: "",
+    DateofBrith: "",
+    Gender: "",
     bio: "",
     governorate: "",
     city: "",
@@ -35,17 +43,35 @@ const Profile = () => {
     confirmPassword: "",
   });
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [touched, setTouched] = useState({});
+
+  const isPhoneValid = formData.PhoneNumber.length === 11;
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const data = await getProfile();
         if (data) {
+          // Format date for the input field (YYYY-MM-DD)
+          let formattedDate = "";
+          if (data.DateofBrith) {
+            const d = new Date(data.DateofBrith);
+            if (!isNaN(d.getTime())) {
+              // Use local time to avoid timezone shifting the day backwards
+              const year = d.getFullYear();
+              const month = String(d.getMonth() + 1).padStart(2, "0");
+              const day = String(d.getDate()).padStart(2, "0");
+              formattedDate = `${year}-${month}-${day}`;
+            }
+          }
+
           setFormData({
             Firstname: data.Firstname || "",
             LastName: data.LastName || "",
             Email: data.Email || "",
             PhoneNumber: data.PhoneNumber || "",
+            DateofBrith: formattedDate,
+            Gender: data.Gender || "",
             bio: data.bio || "",
             governorate: data.governorate || "",
             city: data.city || "",
@@ -68,6 +94,14 @@ const Profile = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+
+    if (name === "PhoneNumber") {
+      const cleaned = value.replace(/\D/g, "").slice(0, 11);
+      setFormData((prev) => ({ ...prev, [name]: cleaned }));
+      return;
+    }
+
     setFormData((prev) => {
       const newData = { ...prev, [name]: value };
       // Reset city if governorate changes
@@ -87,18 +121,92 @@ const Profile = () => {
   };
 
   const handleUploadPhoto = () => {
-    const url = window.prompt("Enter image URL for your profile photo:");
-    if (url !== null) {
-      setFormData((prev) => ({ ...prev, profile_image: url }));
+    // Trigger hidden file input
+    document.getElementById("profile-upload-input").click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file size (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("File is too large. Max size is 2MB.");
+      return;
+    }
+
+    const uploadFormData = new FormData();
+    uploadFormData.append("profile_image", file);
+
+    setSaving(true);
+    try {
+      const response = await uploadProfileImage(uploadFormData);
+      setFormData((prev) => ({
+        ...prev,
+        profile_image: response.profile_image,
+      }));
+      toast.success("Photo uploaded successfully!");
+
+      // Update local storage user object
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        user.profile_image = response.profile_image;
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      toast.error(error.message || "Failed to upload photo.");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Required fields validation
+    const requiredFields = [
+      "Firstname",
+      "LastName",
+      "Email",
+      "PhoneNumber",
+      "DateofBrith",
+      "Gender",
+    ];
+    const fieldNamesAr = {
+      Firstname: "الاسم الأول",
+      LastName: "الاسم الأخير",
+      Email: "البريد الإلكتروني",
+      PhoneNumber: "رقم الهاتف",
+      DateofBrith: "تاريخ الميلاد",
+      Gender: "الجنس",
+    };
+    const missingFields = requiredFields.filter(
+      (field) => !formData[field] || formData[field] === "",
+    );
+
+    if (missingFields.length > 0) {
+      const missingNames = missingFields
+        .map((field) => fieldNamesAr[field])
+        .join("، ");
+      toast.error(`الرجاء إكمال البيانات التالية: ${missingNames}`);
+      // Mark missing fields as touched to trigger visual error state (if implemented)
+      const newTouched = { ...touched };
+      missingFields.forEach((field) => (newTouched[field] = true));
+      setTouched(newTouched);
+      return;
+    }
+
+    if (!isPhoneValid) {
+      toast.error("رقم الهاتف يجب أن يتكون من 11 رقماً بالضبط");
+      return;
+    }
+
     setSaving(true);
     try {
       await updateProfile(formData);
-      toast.success("Profile updated successfully!");
+      toast.success("تم تحديث الملف الشخصي بنجاح!");
 
       // Update local storage user object if it exists so other parts of the app update
       const storedUser = localStorage.getItem("user");
@@ -113,7 +221,12 @@ const Profile = () => {
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error(error.message || "Failed to update profile.");
+      // If error is an object with a message property, use it. Otherwise, if it's a string, use it directly.
+      const errorMessage =
+        (error && typeof error === "object" && error.message) 
+          ? error.message 
+          : (typeof error === "string" ? error : "حدث خطأ أثناء تحديث الملف الشخصي.");
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -251,6 +364,13 @@ const Profile = () => {
             <p className="text-[11px] text-gray-400 mt-2.5">
               JPG, GIF or PNG. Max size of 2MB.
             </p>
+            <input
+              id="profile-upload-input"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
           </div>
 
           {/* Form */}
@@ -273,7 +393,7 @@ const Profile = () => {
                     name="Firstname"
                     value={formData.Firstname}
                     onChange={handleChange}
-                    className="w-full bg-[#F8FAFC] border border-transparent focus:border-gray-200 rounded-[10px] px-4 py-3 text-[14px] text-gray-800 outline-none transition-colors focus:bg-white focus:ring-2 focus:ring-indigo-100"
+                    className={`w-full bg-[#F8FAFC] border ${touched.Firstname && !formData.Firstname ? "border-red-500" : "border-transparent"} focus:border-gray-200 rounded-[10px] px-4 py-3 text-[14px] text-gray-800 outline-none transition-colors focus:bg-white focus:ring-2 focus:ring-indigo-100`}
                   />
                 </div>
                 <div>
@@ -285,7 +405,7 @@ const Profile = () => {
                     name="LastName"
                     value={formData.LastName}
                     onChange={handleChange}
-                    className="w-full bg-[#F8FAFC] border border-transparent focus:border-gray-200 rounded-[10px] px-4 py-3 text-[14px] text-gray-800 outline-none transition-colors focus:bg-white focus:ring-2 focus:ring-indigo-100"
+                    className={`w-full bg-[#F8FAFC] border ${touched.LastName && !formData.LastName ? "border-red-500" : "border-transparent"} focus:border-gray-200 rounded-[10px] px-4 py-3 text-[14px] text-gray-800 outline-none transition-colors focus:bg-white focus:ring-2 focus:ring-indigo-100`}
                   />
                 </div>
               </div>
@@ -299,7 +419,7 @@ const Profile = () => {
                     name="Email"
                     value={formData.Email}
                     onChange={handleChange}
-                    className="w-full bg-[#F8FAFC] border border-transparent focus:border-gray-200 rounded-[10px] px-4 py-3 text-[14px] text-gray-800 outline-none transition-colors focus:bg-white focus:ring-2 focus:ring-indigo-100"
+                    className={`w-full bg-[#F8FAFC] border ${touched.Email && !formData.Email ? "border-red-500" : "border-transparent"} focus:border-gray-200 rounded-[10px] px-4 py-3 text-[14px] text-gray-800 outline-none transition-colors focus:bg-white focus:ring-2 focus:ring-indigo-100`}
                   />
                 </div>
                 <div>
@@ -311,8 +431,54 @@ const Profile = () => {
                     name="PhoneNumber"
                     value={formData.PhoneNumber}
                     onChange={handleChange}
-                    className="w-full bg-[#F8FAFC] border border-transparent focus:border-gray-200 rounded-[10px] px-4 py-3 text-[14px] text-gray-800 outline-none transition-colors focus:bg-white focus:ring-2 focus:ring-indigo-100"
+                    className={`w-full bg-[#F8FAFC] border ${touched.PhoneNumber && !isPhoneValid ? "border-red-500" : "border-transparent"} focus:border-gray-200 rounded-[10px] px-4 py-3 text-[14px] text-gray-800 outline-none transition-colors focus:bg-white focus:ring-2 focus:ring-indigo-100`}
                   />
+                  {touched.PhoneNumber && !isPhoneValid && (
+                    <p className="text-[11px] text-red-500 mt-1">
+                      Must be exactly 11 digits
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                <div>
+                  <label className="block text-[13px] font-bold text-[#334155] mb-1.5">
+                    Date of Birth
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      readOnly
+                      placeholder="DD-MM-YYYY"
+                      value={formData.DateofBrith ? formData.DateofBrith.split("-").reverse().join("-") : ""}
+                      className={`w-full bg-[#F8FAFC] border ${touched.DateofBrith && !formData.DateofBrith ? "border-red-500" : "border-transparent"} focus:border-gray-200 rounded-[10px] px-4 py-3 text-[14px] text-gray-800 outline-none transition-colors focus:bg-white focus:ring-2 focus:ring-indigo-100 cursor-pointer`}
+                    />
+                    <input
+                      type="date"
+                      name="DateofBrith"
+                      value={formData.DateofBrith}
+                      onChange={handleChange}
+                      onClick={(e) => e.target.showPicker && e.target.showPicker()}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <Calendar className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[13px] font-bold text-[#334155] mb-1.5">
+                    Gender
+                  </label>
+                  <select
+                    name="Gender"
+                    value={formData.Gender}
+                    onChange={handleChange}
+                    className={`w-full bg-[#F8FAFC] border ${touched.Gender && !formData.Gender ? "border-red-500" : "border-transparent"} focus:border-gray-200 rounded-[10px] px-4 py-3 text-[14px] text-gray-800 outline-none transition-colors focus:bg-white focus:ring-2 focus:ring-indigo-100`}
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
               </div>
               <div>

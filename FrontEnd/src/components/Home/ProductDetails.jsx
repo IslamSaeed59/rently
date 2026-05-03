@@ -779,9 +779,14 @@ const ProductDetails = () => {
 
             <button
               onClick={handleRentNow}
-              className="w-full bg-[#050F2A] text-white font-bold py-4 rounded-xl mb-6 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+              disabled={!product.is_available}
+              className={`w-full font-bold py-4 rounded-xl mb-6 transition-all flex items-center justify-center gap-2 ${
+                product.is_available 
+                  ? "bg-[#050F2A] text-white hover:opacity-90 shadow-lg" 
+                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
+              }`}
             >
-              Rent Now
+              {product.is_available ? "Rent Now" : "Currently Unavailable"}
             </button>
 
             {/* Seller Card */}
@@ -790,7 +795,7 @@ const ProductDetails = () => {
                 <div className="w-12 h-12 bg-black rounded-full overflow-hidden flex-shrink-0 relative">
                   {/* Mock profile image */}
                   <img
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=100&q=80"
+                    src={product.seller_image ? (product.seller_image.startsWith('http') ? product.seller_image : `http://localhost:9000${product.seller_image}`) : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=100&q=80"}
                     alt="Seller"
                     className="w-full h-full object-cover"
                   />

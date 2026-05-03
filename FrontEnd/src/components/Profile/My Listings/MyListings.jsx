@@ -1,21 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getMyListings, deleteProduct } from "../../../server/ProductsApi";
-import { Search, MapPin, Calendar, Clock, Plus } from "lucide-react";
+import { getAllCategories } from "../../../server/Api";
+import { Search, MapPin, Calendar, Clock, Plus, Edit } from "lucide-react";
 import { toast } from "react-toastify";
 
 const MyListings = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  const fetchListings = async () => {
+  const fetchData = async () => {
     try {
-      const data = await getMyListings();
-      setProducts(data);
+      setLoading(true);
+      const [listingsData, categoriesData] = await Promise.all([
+        getMyListings(),
+        getAllCategories()
+      ]);
+      setProducts(listingsData);
+      setCategories(categoriesData);
     } catch (error) {
-      console.error("Error fetching listings:", error);
+      console.error("Error fetching data:", error);
       toast.error("Failed to load your listings.");
     } finally {
       setLoading(false);
@@ -23,7 +31,7 @@ const MyListings = () => {
   };
 
   useEffect(() => {
-    fetchListings();
+    fetchData();
   }, []);
 
   const handleDelete = async (id) => {
@@ -31,16 +39,18 @@ const MyListings = () => {
       try {
         await deleteProduct(id);
         toast.success("Product deleted successfully");
-        fetchListings();
+        fetchData();
       } catch (error) {
         toast.error("Failed to delete product");
       }
     }
   };
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || p.category_id === parseInt(selectedCategory);
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-white">
@@ -69,26 +79,36 @@ const MyListings = () => {
               Category:
             </h3>
             <div className="flex flex-col gap-3">
-              {[
-                { id: "all", label: "ALL" },
-                { id: "electronics", label: "Electronics" },
-                { id: "sports", label: "Sports & Fitness" },
-                { id: "cameras", label: "Cameras & Creator Gear" },
-                { id: "events", label: "Events" },
-              ].map((cat) => (
+              <label
+                onClick={() => setSelectedCategory("all")}
+                className="flex items-center gap-3 cursor-pointer group"
+              >
+                <div
+                  className={`w-4 h-4 border rounded ${selectedCategory === "all" ? "border-[#050F2A] bg-[#050F2A]" : "border-gray-300 group-hover:border-gray-400"} flex items-center justify-center transition-colors`}
+                >
+                  {selectedCategory === "all" && (
+                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                  )}
+                </div>
+                <span className={`text-[13px] font-medium ${selectedCategory === "all" ? "text-[#050F2A]" : "text-gray-600"} group-hover:text-[#050F2A] transition-colors`}>
+                  ALL
+                </span>
+              </label>
+              {categories.map((cat) => (
                 <label
                   key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id.toString())}
                   className="flex items-center gap-3 cursor-pointer group"
                 >
                   <div
-                    className={`w-4 h-4 border rounded ${cat.id === "all" ? "border-gray-400 bg-gray-50" : "border-gray-300 group-hover:border-gray-400"} flex items-center justify-center transition-colors`}
+                    className={`w-4 h-4 border rounded ${selectedCategory === cat.id.toString() ? "border-[#050F2A] bg-[#050F2A]" : "border-gray-300 group-hover:border-gray-400"} flex items-center justify-center transition-colors`}
                   >
-                    {cat.id === "all" && (
-                      <div className="w-2 h-2 bg-gray-400 rounded-sm"></div>
+                    {selectedCategory === cat.id.toString() && (
+                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                     )}
                   </div>
-                  <span className="text-[13px] font-medium text-gray-600 group-hover:text-[#050F2A] transition-colors">
-                    {cat.label}
+                  <span className={`text-[13px] font-medium ${selectedCategory === cat.id.toString() ? "text-[#050F2A]" : "text-gray-600"} group-hover:text-[#050F2A] transition-colors`}>
+                    {cat.name}
                   </span>
                 </label>
               ))}
@@ -195,16 +215,26 @@ const MyListings = () => {
                             </span>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-2 mt-auto">
+                          <div className="grid grid-cols-3 gap-2 mt-auto">
                             <button
                               onClick={() => navigate(`/product/${product.id}`)}
-                              className="bg-[#050F2A] text-white text-[12px] font-bold py-2.5 rounded-[10px] hover:opacity-90 transition-opacity"
+                              className="bg-[#050F2A] text-white text-[11px] font-bold py-2.5 rounded-[10px] hover:opacity-90 transition-opacity"
+                              title="View Product"
                             >
-                              View Product
+                              View
+                            </button>
+                            <button
+                              onClick={() => navigate(`/products/edit/${product.id}`)}
+                              className="bg-[#A78BFA] text-[#050F2A] text-[11px] font-bold py-2.5 rounded-[10px] hover:opacity-90 transition-opacity flex items-center justify-center gap-1"
+                              title="Edit Listing"
+                            >
+                              <Edit size={12} />
+                              Edit
                             </button>
                             <button
                               onClick={() => handleDelete(product.id)}
-                              className="bg-[#E2E8F0] text-[#050F2A] text-[12px] font-bold py-2.5 rounded-[10px] hover:bg-gray-300 transition-colors"
+                              className="bg-[#E2E8F0] text-[#050F2A] text-[11px] font-bold py-2.5 rounded-[10px] hover:bg-gray-300 transition-colors"
+                              title="Delete Listing"
                             >
                               Delete
                             </button>

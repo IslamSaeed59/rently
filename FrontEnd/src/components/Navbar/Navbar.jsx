@@ -16,6 +16,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { getConversations } from "../../server/ChatApi";
+import { getNotifications, markAsRead } from "../../server/NotificationsApi";
 import { io } from "socket.io-client";
 
 const Navbar = () => {
@@ -23,6 +24,8 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifs, setShowNotifs] = useState(false);
   const navigate = useNavigate();
 
   const isAdmin = user?.Email === "admin@gmail.com";
@@ -51,6 +54,7 @@ const Navbar = () => {
   useEffect(() => {
     if (isLoggedIn && user) {
       fetchUnreadCount();
+      fetchNotifications();
       
       const socket = io("http://localhost:9000");
       socket.emit("join_user", user.id);
@@ -58,12 +62,24 @@ const Navbar = () => {
       socket.on("new_notification", (notif) => {
         if (notif.type === "new_message") {
           fetchUnreadCount();
+        } else {
+          // New rental request or status update
+          setNotifications(prev => [notif, ...prev]);
         }
       });
 
       return () => socket.disconnect();
     }
   }, [isLoggedIn, user]);
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await getNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
 
   const fetchUnreadCount = async () => {
     try {
@@ -143,12 +159,88 @@ const Navbar = () => {
                 >
                   <User size={18} />
                 </Link>
-                <Link
-                  to="#"
-                  className="flex text-white/80 hover:text-white transition-all duration-[220ms] ease-[cubic-bezier(.4,0,.2,1)]"
-                >
-                  <Bell size={18} />
-                </Link>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowNotifs(!showNotifs)}
+                    className={`flex transition-all duration-[220ms] ${showNotifs ? "text-white" : "text-white/80 hover:text-white"}`}
+                  >
+                    <Bell size={18} />
+                    {notifications.filter(n => !n.is_read).length > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-[#B8A0FF] text-[#050F2A] text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[#050F2A]">
+                        {notifications.filter(n => !n.is_read).length}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Notifications Dropdown */}
+                  {showNotifs && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowNotifs(false)}></div>
+                      <div className="absolute right-0 mt-4 w-80 bg-white rounded-2xl shadow-2xl z-50 overflow-hidden border border-gray-100 animate-in fade-in slide-in-from-top-2">
+                        <div className="p-4 bg-[#050F2A] text-white flex justify-between items-center">
+                          <h3 className="font-bold text-sm">Notifications</h3>
+                          <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">New</span>
+                        </div>
+                        <div className="max-h-96 overflow-y-auto">
+                          {notifications.length === 0 ? (
+                            <div className="p-8 text-center text-gray-400">
+                              <Bell size={32} className="mx-auto mb-2 opacity-20" />
+                              <p className="text-sm">No notifications yet</p>
+                            </div>
+                          ) : (
+                            notifications.slice(0, 5).map((notif) => (
+                              <div 
+                                key={notif.id || Math.random()} 
+                                onClick={async () => {
+                                  if (!notif.is_read && notif.id) {
+                                    await markAsRead(notif.id);
+                                    // Update local state to mark as read instead of removing
+                                    setNotifications(prev => 
+                                      prev.map(n => n.id === notif.id ? { ...n, is_read: 1 } : n)
+                                    );
+                                  }
+                                  setShowNotifs(false);
+                                  if (notif.type === 'rental_request') navigate('/profile/booking-requests');
+                                  else if (notif.type.startsWith('request_')) navigate('/profile/my-rentals');
+                                }}
+                                className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors flex gap-3 ${!notif.is_read ? 'bg-blue-50/40' : 'bg-white'}`}
+                              >
+                                <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                  {notif.sender_image ? (
+                                    <img src={notif.sender_image.startsWith('http') ? notif.sender_image : `http://localhost:9000${notif.sender_image}`} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <User size={16} className="text-gray-400" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[13px] text-[#050F2A] leading-snug mb-1">
+                                    <span className="font-bold">{notif.sender_name}</span> {notif.message}
+                                  </p>
+                                  <span className="text-[10px] text-gray-400">
+                                    {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+                                {!notif.is_read && <div className="w-2 h-2 bg-[#B8A0FF] rounded-full self-center"></div>}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        {notifications.length > 0 && (
+                          <button 
+                            className="w-full py-3 text-center text-[12px] font-bold text-[#050F2A] bg-gray-50 hover:bg-gray-100 transition-colors"
+                            onClick={() => {
+                              // Link to a full notifications page if needed
+                              setShowNotifs(false);
+                              navigate('/profile?tab=notifications');
+                            }}
+                          >
+                            View All Notifications
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
                 <div className="w-[1px] h-4 bg-white/20 mx-1"></div>
                 <button
                   onClick={handleLogout}

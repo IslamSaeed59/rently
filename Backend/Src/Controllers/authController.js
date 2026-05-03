@@ -1,10 +1,14 @@
 const authModel = require("../Models/Auth/Auth");
 const bcrypt = require("bcrypt");
+const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const dotenv = require("dotenv");
+const { OAuth2Client } = require("google-auth-library");
 
 dotenv.config();
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Configure nodemailer
 const transporter = nodemailer.createTransport({
@@ -16,6 +20,59 @@ const transporter = nodemailer.createTransport({
 });
 
 const authController = {
+  // Google Login
+  googleLogin: async (req, res) => {
+    try {
+      const { credential } = req.body; // This is actually the access_token now from frontend
+      
+      // Fetch user info from Google using access_token
+      const googleRes = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: { Authorization: `Bearer ${credential}` },
+      });
+      
+      const { email, given_name, family_name, sub: googleId } = googleRes.data;
+
+      // Check if user exists
+      let user = await authModel.findByEmail(email);
+
+      if (!user) {
+        // Create new user if they don't exist
+        const userId = await authModel.createUser({
+          Firstname: given_name,
+          LastName: family_name || "",
+          Email: email,
+          PhoneNumber: "", 
+          DateofBrith: "2000-01-01", 
+          Gender: "Other", 
+          Password: await bcrypt.hash(googleId, 10), 
+        });
+        user = await authModel.findByEmail(email);
+      }
+
+      // Generate JWT
+      const token = jwt.sign(
+        { userId: user.id, Email: user.Email },
+        process.env.JWT_SECRET || "your_secret_key",
+        { expiresIn: "5h" }
+      );
+
+      res.status(200).json({
+        message: "Login successful",
+        token,
+        user: {
+          id: user.id,
+          Firstname: user.Firstname,
+          LastName: user.LastName,
+          Email: user.Email,
+          verification_status: user.verification_status,
+        },
+      });
+    } catch (error) {
+      console.error("Google Login Error:", error);
+      res.status(500).json({ message: "Google login failed", error: error.message });
+    }
+  },
+
   // Step 1: Register and send OTP
   register: async (req, res) => {
     try {
@@ -117,7 +174,7 @@ const authController = {
       // Compare password
       const isMatch = await bcrypt.compare(Password, user.Password);
       if (!isMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Incorrect password" });
       }
 
       // Generate JWT (5 hours)
@@ -137,6 +194,7 @@ const authController = {
           Email: user.Email,
           governorate: user.governorate,
           city: user.city,
+          verification_status: user.verification_status,
         },
       });
     } catch (error) {

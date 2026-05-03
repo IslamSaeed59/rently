@@ -11,20 +11,28 @@ import {
   Mail,
   Store,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 const NAV_ITEMS = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/admin" },
   { name: "Products", icon: Package, path: "/admin/products" },
   { name: "Categories", icon: Grid, path: "/admin/categories" },
   { name: "Customers", icon: Users, path: "/admin/customers" },
-  { name: "Analytics", icon: TrendingUp, path: "/admin/analytics" },
+  // { name: "Analytics", icon: TrendingUp, path: "/admin/analytics" },
   { name: "Messages", icon: Mail, path: "/admin/messages" },
-  { name: "Settings", icon: Settings, path: "/admin/settings" },
-  { name: "store", icon: Store, path: "/" },
+  { name: "Store", icon: Store, path: "/" },
 ];
 
 const AdminSidbar = () => {
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
   return (
     <aside className="w-72 h-screen bg-[#050F2A] flex flex-col border-r border-white/5 sticky top-0 overflow-y-auto">
       {/* Brand Section */}
@@ -77,20 +85,23 @@ const AdminSidbar = () => {
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#A78BFA] to-white/20 p-px">
               <img
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                src={user.profile_image || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"}
                 alt="Admin"
-                className="w-full h-full rounded-full bg-[#050F2A]"
+                className="w-full h-full rounded-full bg-[#050F2A] object-cover"
               />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-white truncate">
-                Admin User
+                {user.Firstname && user.LastName ? `${user.Firstname} ${user.LastName}` : "Admin User"}
               </p>
-              <p className="text-xs text-gray-500 truncate">admin@rently.com</p>
+              <p className="text-xs text-gray-500 truncate">{user.Email || "admin@rently.com"}</p>
             </div>
           </div>
 
-          <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-400 hover:bg-red-500/10 hover:text-red-500 transition-all duration-300 font-bold text-sm">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-400 hover:bg-red-500/10 hover:text-red-500 transition-all duration-300 font-bold text-sm"
+          >
             <LogOut size={16} />
             Sign Out
           </button>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { getAllProducts, deleteProduct } from "../../server/ProductsApi";
+import { getAllProducts, deleteProduct, updateProduct } from "../../server/ProductsApi";
 import { getAllCategories } from "../../server/Api";
-import { Plus, Edit, Trash2, MapPin, Search, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, Search, Filter , Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -61,6 +61,21 @@ const Products = () => {
         console.error("Error deleting product:", error);
         toast.error("Failed to delete product");
       }
+    }
+  };
+
+  const handleToggleFeatured = async (product) => {
+    try {
+      const updatedProduct = {
+        ...product,
+        is_featured: product.is_featured ? 0 : 1
+      };
+      await updateProduct(product.id, updatedProduct);
+      toast.success(updatedProduct.is_featured ? "Product featured!" : "Featured status removed");
+      setProducts(products.map(p => p.id === product.id ? { ...p, is_featured: updatedProduct.is_featured } : p));
+    } catch (error) {
+      console.error("Error updating featured status:", error);
+      toast.error("Failed to update featured status");
     }
   };
 
@@ -309,6 +324,13 @@ const Products = () => {
                     {/* Actions */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleToggleFeatured(product)}
+                          className={`p-2 rounded-full transition-all ${product.is_featured ? "text-yellow-500 bg-yellow-50" : "text-gray-400 hover:text-yellow-500 hover:bg-yellow-50"}`}
+                          title={product.is_featured ? "Remove from Featured" : "Mark as Featured"}
+                        >
+                          <Star size={18} className={product.is_featured ? "fill-current" : ""} />
+                        </button>
                         <Link
                           to={`/products/edit/${product.id}`}
                           className="p-2 text-[#64748B] hover:text-[#050F2A] hover:bg-[#F1F5F9] rounded-full transition-all"

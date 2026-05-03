@@ -144,10 +144,19 @@ const OurProducts = () => {
 
                   {/* Rent Now Overlay */}
                   <div className="absolute inset-0 bg-[#050F2A]/0 group-hover:bg-[#050F2A]/5 transition-colors duration-500 flex items-center justify-center">
+                    {!product.is_available && (
+                      <div className="absolute top-5 left-5 bg-red-500 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-lg z-20">
+                        Unavailable
+                      </div>
+                    )}
                     <div className="translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
                       <button
                         onClick={(e) => {
                           e.preventDefault();
+                          if (!product.is_available) {
+                            toast.warning("This product is currently not available for rent.");
+                            return;
+                          }
                           const token = localStorage.getItem("token");
                           if (!token) {
                             toast.info("Please login to rent products.");
@@ -156,10 +165,12 @@ const OurProducts = () => {
                           }
                           navigate(`/product/${product.id}`);
                         }}
-                        className="bg-[#050F2A] text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 shadow-2xl hover:bg-[#A78BFA] transition-colors"
+                        className={`${
+                          product.is_available ? "bg-[#050F2A]" : "bg-gray-400 cursor-not-allowed"
+                        } text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 shadow-2xl hover:bg-[#A78BFA] transition-colors`}
                       >
                         <ShoppingBag size={20} />
-                        Rent Now
+                        {product.is_available ? "Rent Now" : "Unavailable"}
                       </button>
                     </div>
                   </div>

@@ -23,8 +23,8 @@ const Product = {
 
       const [productResult] = await connection.query(
         `INSERT INTO products 
-        (seller_id, category_id, name, description, price_per_hour, price_per_day, price_per_week, price_per_month, deposit_amount, location, total_rentals, total_earnings) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (seller_id, category_id, name, description, price_per_hour, price_per_day, price_per_week, price_per_month, deposit_amount, location, total_rentals, total_earnings, is_featured) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           seller_id,
           category_id,
@@ -38,6 +38,7 @@ const Product = {
           location,
           total_rentals || 0,
           total_earnings || 0,
+          productData.is_featured || 0,
         ],
       );
 
@@ -69,11 +70,12 @@ const Product = {
   findAll: async (filters = {}) => {
     let query = `
       SELECT p.*, pi.image_url as primary_image, c.name as category_name, 
-             CONCAT(s.Firstname, ' ', s.LastName) as seller_name
+             CONCAT(s.Firstname, ' ', s.LastName) as seller_name, pr.profile_image as seller_image
       FROM products p 
       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = TRUE 
       LEFT JOIN categories c ON p.category_id = c.id
       LEFT JOIN users s ON p.seller_id = s.id
+      LEFT JOIN profiles pr ON s.id = pr.user_id
       WHERE 1=1
     `;
     const params = [];
@@ -109,11 +111,12 @@ const Product = {
   findBySellerId: async (sellerId) => {
     let query = `
       SELECT p.*, pi.image_url as primary_image, c.name as category_name, 
-             CONCAT(s.Firstname, ' ', s.LastName) as seller_name
+             CONCAT(s.Firstname, ' ', s.LastName) as seller_name, pr.profile_image as seller_image
       FROM products p 
       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = TRUE 
       LEFT JOIN categories c ON p.category_id = c.id
       LEFT JOIN users s ON p.seller_id = s.id
+      LEFT JOIN profiles pr ON s.id = pr.user_id
       WHERE p.seller_id = ?
     `;
     const [rows] = await pool.query(query, [sellerId]);
@@ -123,10 +126,11 @@ const Product = {
   findById: async (id) => {
     const [products] = await pool.query(
       `SELECT p.*, c.name as category_name, 
-              CONCAT(s.Firstname, ' ', s.LastName) as seller_name
+              CONCAT(s.Firstname, ' ', s.LastName) as seller_name, pr.profile_image as seller_image
        FROM products p 
        LEFT JOIN categories c ON p.category_id = c.id
        LEFT JOIN users s ON p.seller_id = s.id
+       LEFT JOIN profiles pr ON s.id = pr.user_id
        WHERE p.id = ?`,
       [id]
     );
@@ -165,7 +169,7 @@ const Product = {
         `UPDATE products SET 
           category_id = ?, name = ?, description = ?, price_per_hour = ?, 
           price_per_day = ?, price_per_week = ?, price_per_month = ?, deposit_amount = ?, 
-          location = ?, is_available = ?, is_active = ?, total_rentals = ?, total_earnings = ? 
+          location = ?, is_available = ?, is_active = ?, total_rentals = ?, total_earnings = ?, is_featured = ? 
         WHERE id = ?`,
         [
           category_id,
@@ -181,6 +185,7 @@ const Product = {
           is_active,
           total_rentals,
           total_earnings,
+          productData.is_featured || 0,
           id,
         ],
       );

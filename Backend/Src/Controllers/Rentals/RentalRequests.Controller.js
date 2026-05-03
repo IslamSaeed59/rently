@@ -2,10 +2,18 @@ const RentalRequest = require("../../Models/Rental/RentalRequests");
 const Product = require("../../Models/products/Products");
 const BookingBlackout = require("../../Models/Rental/Booking");
 const Rental = require("../../Models/Rental/Rentals");
+const Notification = require("../../Models/notifications/Notification");
 
 const createRequest = async (req, res) => {
   try {
-    const { product_id, start_datetime, end_datetime, rental_type, total_price, payment_method } = req.body;
+    const {
+      product_id,
+      start_datetime,
+      end_datetime,
+      rental_type,
+      total_price,
+      payment_method,
+    } = req.body;
     const buyer_id = req.user.userId || req.user.id;
 
     const product = await Product.findById(product_id);
@@ -14,7 +22,9 @@ const createRequest = async (req, res) => {
     }
 
     if (product.seller_id === buyer_id) {
-      return res.status(400).json({ message: "You cannot rent your own product" });
+      return res
+        .status(400)
+        .json({ message: "You cannot rent your own product" });
     }
 
     const requestId = await RentalRequest.create({
@@ -28,7 +38,32 @@ const createRequest = async (req, res) => {
       payment_method,
     });
 
-    res.status(201).json({ message: "Rental request submitted successfully", requestId });
+    // Send notification to Seller
+    try {
+      const notificationData = {
+        user_id: product.seller_id,
+        sender_id: buyer_id,
+        type: "rental_request",
+        message: `New rental request for your product: ${product.name}`,
+        related_id: requestId,
+      };
+      const notifId = await Notification.create(notificationData);
+
+      // Emit real-time notification
+      const io = req.app.get("io");
+      io.to(`user_${product.seller_id}`).emit("new_notification", {
+        ...notificationData,
+        id: notifId,
+        sender_name: req.user.Firstname || "A user",
+        created_at: new Date(),
+      });
+    } catch (e) {
+      console.error("Failed to send notification:", e);
+    }
+
+    res
+      .status(201)
+      .json({ message: "Rental request submitted successfully", requestId });
   } catch (error) {
     console.error("Create Request Error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -71,11 +106,15 @@ const updateRequestStatus = async (req, res) => {
     // Authorization logic
     if (status === "cancelled_by_buyer") {
       if (request.buyer_id !== userId) {
-        return res.status(403).json({ message: "Not authorized to cancel this request" });
+        return res
+          .status(403)
+          .json({ message: "Not authorized to cancel this request" });
       }
     } else if (status === "accepted" || status === "rejected") {
       if (request.seller_id !== userId) {
-        return res.status(403).json({ message: "Not authorized to respond to this request" });
+        return res
+          .status(403)
+          .json({ message: "Not authorized to respond to this request" });
       }
     }
 
@@ -104,6 +143,30 @@ const updateRequestStatus = async (req, res) => {
           rental_id: rentalId,
         });
       }
+
+      // Send notification to Buyer
+      try {
+        const notificationData = {
+          user_id: request.buyer_id,
+          sender_id: userId,
+          type: `request_${status}`,
+          message: `Your rental request for ${request.product_name || "the product"} has been ${status}`,
+          related_id: id,
+        };
+        const notifId = await Notification.create(notificationData);
+
+        // Emit real-time notification
+        const io = req.app.get("io");
+        io.to(`user_${request.buyer_id}`).emit("new_notification", {
+          ...notificationData,
+          id: notifId,
+          sender_name: "System",
+          created_at: new Date(),
+        });
+      } catch (e) {
+        console.error("Failed to send status notification:", e);
+      }
+
       res.status(200).json({ message: `Request ${status} successfully` });
     } else {
       res.status(400).json({ message: "Failed to update request status" });

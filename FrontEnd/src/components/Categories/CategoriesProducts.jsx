@@ -11,9 +11,14 @@ import {
   Heart,
   ShoppingBag,
   ArrowRight,
+  ChevronLeft,
 } from "lucide-react";
 import { getAllCategories } from "../../server/Api";
-import { getAllProducts, toggleFavorite, getMyFavorites } from "../../server/ProductsApi";
+import {
+  getAllProducts,
+  toggleFavorite,
+  getMyFavorites,
+} from "../../server/ProductsApi";
 import { toast } from "react-toastify";
 import locations from "../../locations.json";
 
@@ -25,7 +30,8 @@ const CategoriesProducts = () => {
   const [category, setCategory] = useState(null);
   const [allCategories, setAllCategories] = useState([]);
   const [products, setProducts] = useState([]);
-  const [randomProduct, setRandomProduct] = useState(null);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [userFavorites, setUserFavorites] = useState(new Set());
   const [showFilters, setShowFilters] = useState(true);
 
@@ -45,7 +51,7 @@ const CategoriesProducts = () => {
     if (token) {
       try {
         const favs = await getMyFavorites();
-        setUserFavorites(new Set(favs.map(f => f.product_id)));
+        setUserFavorites(new Set(favs.map((f) => f.product_id)));
       } catch (error) {
         console.error("Error fetching favorites:", error);
       }
@@ -104,18 +110,26 @@ const CategoriesProducts = () => {
 
       setProducts(categoryProducts);
 
-      // Select a random product for the limited offer (Only from the main category itself, not sub-categories)
-      const mainCategoryProducts = categoryProducts.filter(
-        (p) => p.category_id === currentCat.id,
-      );
-      if (mainCategoryProducts.length > 0) {
-        const randomIndex = Math.floor(
-          Math.random() * mainCategoryProducts.length,
-        );
-        setRandomProduct(mainCategoryProducts[randomIndex]);
+      // Get all featured products (including subcategories)
+      const featured = categoryProducts.filter((p) => p.is_featured == 1);
+
+      if (featured.length > 0) {
+        setFeaturedProducts(featured);
       } else {
-        setRandomProduct(null);
+        // Fallback to one random product from main category if none are featured
+        const mainCategoryProducts = categoryProducts.filter(
+          (p) => p.category_id === currentCat.id,
+        );
+        if (mainCategoryProducts.length > 0) {
+          const randomIndex = Math.floor(
+            Math.random() * mainCategoryProducts.length,
+          );
+          setFeaturedProducts([mainCategoryProducts[randomIndex]]);
+        } else {
+          setFeaturedProducts([]);
+        }
       }
+      setCurrentIndex(0);
     } catch (error) {
       console.error("Error fetching category products:", error);
       toast.error("Failed to load products");
@@ -123,6 +137,18 @@ const CategoriesProducts = () => {
       setLoading(false);
     }
   };
+
+  const nextFeatured = () => {
+    setCurrentIndex((prev) => (prev + 1) % featuredProducts.length);
+  };
+
+  const prevFeatured = () => {
+    setCurrentIndex(
+      (prev) => (prev - 1 + featuredProducts.length) % featuredProducts.length,
+    );
+  };
+
+  const currentFeatured = featuredProducts[currentIndex];
 
   const filteredProducts = products.filter((product) => {
     const matchesName = product.name
@@ -303,7 +329,6 @@ const CategoriesProducts = () => {
                   }}
                   className="w-full bg-[#050F2A] text-white px-5 py-4 rounded-xl font-medium appearance-none focus:ring-2 ring-[#A78BFA]/50 outline-none transition-all cursor-pointer"
                 >
-                  <option value="">Select Category</option>
                   {allCategories
                     .filter((cat) => !cat.parent_id)
                     .map((cat) => (
@@ -325,8 +350,8 @@ const CategoriesProducts = () => {
       )}
 
       {/* Hero Section / Limited Offer */}
-      {randomProduct && (
-        <div className="px-6 md:px-20 mb-20">
+      {currentFeatured && (
+        <div className="px-6 md:px-20 mb-20 relative group/hero">
           <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#050F2A] via-[#0A1A40] to-[#050F2A] min-h-[450px] flex flex-col md:flex-row items-center p-10 md:p-20 group">
             {/* Content */}
             <div className="relative z-10 flex-1 text-white text-center md:text-left mb-10 md:mb-0">
@@ -357,7 +382,7 @@ const CategoriesProducts = () => {
               </div>
 
               <Link
-                to={`/product/${randomProduct.id}`}
+                to={`/product/${currentFeatured.id}`}
                 className="inline-flex items-center gap-3 bg-[#A78BFA] text-[#050F2A] px-10 py-4 rounded-2xl font-black text-lg hover:bg-white transition-all duration-500 hover:-translate-y-1 shadow-xl shadow-[#A78BFA]/20 group-hover:shadow-[#A78BFA]/40"
               >
                 Rent Now
@@ -370,15 +395,16 @@ const CategoriesProducts = () => {
               <div className="relative w-full max-w-[500px]">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[#A78BFA]/10 blur-[100px] rounded-full" />
                 <img
+                  key={currentFeatured.id}
                   src={
-                    randomProduct.primary_image
-                      ? randomProduct.primary_image.startsWith("http")
-                        ? randomProduct.primary_image
-                        : `http://localhost:9000${randomProduct.primary_image}`
+                    currentFeatured.primary_image
+                      ? currentFeatured.primary_image.startsWith("http")
+                        ? currentFeatured.primary_image
+                        : `http://localhost:9000${currentFeatured.primary_image}`
                       : "https://via.placeholder.com/800?text=No+Image"
                   }
-                  alt={randomProduct.name}
-                  className="w-full h-auto object-contain relative z-10 drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-transform duration-700 group-hover:scale-105"
+                  alt={currentFeatured.name}
+                  className="w-full h-auto object-contain relative z-10 drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-transform duration-700 group-hover:scale-105 animate-in fade-in slide-in-from-right-4"
                 />
               </div>
             </div>
@@ -387,6 +413,35 @@ const CategoriesProducts = () => {
             <div className="absolute top-0 right-0 w-1/3 h-full bg-[#A78BFA]/5 blur-[80px] -rotate-12 translate-x-20" />
             <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/5 rounded-full blur-[40px]" />
           </div>
+
+          {/* Slider Controls */}
+          {featuredProducts.length > 1 && (
+            <>
+              <button
+                onClick={prevFeatured}
+                className="absolute left-10 md:left-24 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-[#A78BFA] hover:border-[#A78BFA] transition-all z-20 opacity-0 group-hover/hero:opacity-100"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <button
+                onClick={nextFeatured}
+                className="absolute right-10 md:right-24 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-[#A78BFA] hover:border-[#A78BFA] transition-all z-20 opacity-0 group-hover/hero:opacity-100"
+              >
+                <ChevronRight size={24} />
+              </button>
+
+              {/* Indicators */}
+              <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                {featuredProducts.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentIndex(i)}
+                    className={`w-2 h-2 rounded-full transition-all ${i === currentIndex ? "w-8 bg-[#A78BFA]" : "bg-white/30 hover:bg-white/50"}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -460,23 +515,55 @@ const CategoriesProducts = () => {
                           {/* Status / Quick Actions */}
                           <div className="absolute top-5 right-5 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-500">
                             <button
-                              onClick={(e) => handleToggleFavorite(e, product.id)}
+                              onClick={(e) =>
+                                handleToggleFavorite(e, product.id)
+                              }
                               className={`p-3.5 rounded-full backdrop-blur-md shadow-xl transition-all active:scale-90 ${
                                 userFavorites.has(product.id)
                                   ? "bg-red-50 text-red-500"
                                   : "bg-white/80 text-[#050F2A] hover:bg-[#A78BFA] hover:text-white"
                               }`}
                             >
-                              <Heart size={18} className={userFavorites.has(product.id) ? "fill-current" : ""} />
+                              <Heart
+                                size={18}
+                                className={
+                                  userFavorites.has(product.id)
+                                    ? "fill-current"
+                                    : ""
+                                }
+                              />
                             </button>
                           </div>
 
                           {/* Rent Now Overlay */}
                           <div className="absolute inset-0 bg-[#050F2A]/0 group-hover:bg-[#050F2A]/5 transition-colors duration-500 flex items-center justify-center">
+                            {!product.is_available && (
+                              <div className="absolute top-5 left-5 bg-red-500 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-lg z-20">
+                                Unavailable
+                              </div>
+                            )}
                             <div className="translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                              <button className="bg-[#050F2A] text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 shadow-2xl">
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (!product.is_available) {
+                                    toast.warning(
+                                      "This product is currently not available for rent.",
+                                    );
+                                    return;
+                                  }
+                                  navigate(`/product/${product.id}`);
+                                }}
+                                className={`${
+                                  product.is_available
+                                    ? "bg-[#050F2A]"
+                                    : "bg-gray-400 cursor-not-allowed"
+                                } text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 shadow-2xl hover:bg-[#A78BFA] transition-colors`}
+                              >
                                 <ShoppingBag size={20} />
-                                Rent Now
+                                {product.is_available
+                                  ? "Rent Now"
+                                  : "Unavailable"}
                               </button>
                             </div>
                           </div>

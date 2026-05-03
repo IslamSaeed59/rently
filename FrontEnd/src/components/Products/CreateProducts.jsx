@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { CloudUpload, Plus, MapPin, X } from "lucide-react";
 import { createProduct } from "../../server/ProductsApi";
-import { getAllCategories } from "../../server/Api";
+import { getAllCategories, getProfile } from "../../server/Api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
@@ -22,6 +22,7 @@ const CreateProducts = () => {
   const [selectedMainCategory, setSelectedMainCategory] = useState("");
 
   const [images, setImages] = useState([]); // { file, preview }
+  const [profileComplete, setProfileComplete] = useState(true);
 
   useEffect(() => {
     fetchCategories();
@@ -32,22 +33,23 @@ const CreateProducts = () => {
       const response = await getAllCategories();
       setCategories(response);
 
-      // Automatically set the location from the logged-in seller's profile
-      const userStr = localStorage.getItem("user");
-      if (userStr) {
-        try {
-          const userObj = JSON.parse(userStr);
-          const locationParts = [];
-          if (userObj.city) locationParts.push(userObj.city);
-          if (userObj.governorate) locationParts.push(userObj.governorate);
-          
-          if (locationParts.length > 0) {
-            setFormData((prev) => ({ ...prev, location: locationParts.join(", ") }));
-          }
-        } catch (e) {}
+      // Fetch actual profile to ensure location is set
+      const profileData = await getProfile();
+      if (profileData) {
+        const { city, governorate } = profileData;
+        if (!city || !governorate) {
+          setProfileComplete(false);
+          toast.warning("Please complete your profile location (City & Governorate) before creating a product.");
+        } else {
+          setProfileComplete(true);
+          setFormData((prev) => ({ 
+            ...prev, 
+            location: `${city}, ${governorate}` 
+          }));
+        }
       }
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      console.error("Error fetching categories or profile:", error);
     }
   };
 
@@ -89,6 +91,12 @@ const CreateProducts = () => {
   };
 
   const handleSubmit = async () => {
+    if (!profileComplete) {
+      toast.error("You must complete your profile location first.");
+      navigate("/profile");
+      return;
+    }
+
     if (!formData.name || !formData.category_id || !formData.price) {
       toast.error("Please fill in all required fields");
       return;
@@ -327,9 +335,9 @@ const CreateProducts = () => {
                   type="text"
                   name="location"
                   value={formData.location}
-                  onChange={handleInputChange}
-                  className="w-full pl-12 pr-4 py-3 rounded-[12px] border border-[#E2E8F0] focus:border-[#6366F1] outline-none transition-all"
-                  placeholder="City or full address"
+                  readOnly
+                  className="w-full pl-12 pr-4 py-3 rounded-[12px] border border-[#E2E8F0] bg-gray-50 text-gray-500 cursor-not-allowed outline-none transition-all"
+                  placeholder={profileComplete ? "City or full address" : "Please set location in profile"}
                 />
               </div>
             </div>
@@ -387,7 +395,7 @@ const CreateProducts = () => {
         {/* Publish Button */}
         <button
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || !profileComplete}
           className="w-full md:w-auto md:px-24 block mx-auto font-bold text-[18px] rounded-[12px] py-4 cursor-pointer transition-all duration-[220ms] hover:-translate-y-1 disabled:opacity-70 disabled:cursor-not-allowed"
           style={{
             background: "#050F2A",
@@ -395,7 +403,7 @@ const CreateProducts = () => {
             boxShadow: "0 10px 25px rgba(5, 15, 42, 0.2)",
           }}
         >
-          {loading ? "Publishing..." : "Publish Product"}
+          {loading ? "Publishing..." : profileComplete ? "Publish Product" : "Complete Profile First"}
         </button>
       </main>
     </div>
