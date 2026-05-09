@@ -38,7 +38,8 @@ const Dashboard = () => {
 
   const getIcon = (name) => {
     switch(name) {
-      case "Total Revenue": return DollarSign;
+      case "Platform Fees (10%)": return DollarSign;
+      case "Accepted Volume": return TrendingUp;
       case "Total Products": return Package;
       case "Total Users": return Users;
       case "Pending Requests": return ShoppingCart;

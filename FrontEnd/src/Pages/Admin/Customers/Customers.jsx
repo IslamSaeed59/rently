@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { getAllUsers } from "../../../server/Api";
-import { toast } from "react-toastify";
-import { 
-  Search, 
-  Users, 
-  Mail, 
-  Phone, 
-  Calendar, 
+import {
+  Search,
+  Users,
+  Mail,
+  Phone,
+  Calendar,
   User as UserIcon,
   ShieldCheck,
   ChevronRight,
-  MoreVertical
+  MoreVertical,
+  Trash2,
+  AlertCircle,
 } from "lucide-react";
+import { getAllUsers, deleteUser } from "../../../server/Api";
+import Swal from "sweetalert2";
 
 const Customers = () => {
   const [users, setUsers] = useState([]);
@@ -27,15 +29,77 @@ const Customers = () => {
       const data = await getAllUsers();
       setUsers(data);
     } catch (error) {
-      toast.error("Failed to fetch users");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to fetch users",
+        confirmButtonColor: "#050F2A",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredUsers = users.filter(user => 
-    `${user.Firstname} ${user.LastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.Email.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleDeleteUser = async (userId, userName) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      html: `
+        <div class="space-y-4 text-center">
+          <div class="p-4 bg-red-50 rounded-2xl border border-red-100">
+            <p class="text-[#050F2A] font-bold mb-1">أنت على وشك حذف المستخدم: <span class="text-red-600">${userName}</span></p>
+            <p class="text-xs text-gray-500 leading-relaxed">سيؤدي هذا أيضاً إلى حذف جميع منتجاته، عمليات التأجير، وسجل المحفظة. لا يمكن التراجع عن هذا الإجراء!</p>
+          </div>
+          <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+            <p class="text-[#050F2A] font-bold mb-1">You are about to delete: <span class="text-red-600">${userName}</span></p>
+            <p class="text-xs text-gray-500 leading-relaxed">This will also delete all products, rentals, and wallet history. This action cannot be undone!</p>
+          </div>
+        </div>
+      `,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, delete everything",
+      cancelButtonText: "Cancel",
+      background: "#fff",
+      customClass: {
+        title: "text-[#050F2A] font-black pt-8",
+        popup: "rounded-[40px] p-8 px-10",
+        confirmButton: "rounded-xl px-6 py-3 font-bold",
+        cancelButton: "rounded-xl px-6 py-3 font-bold",
+      },
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteUser(userId);
+        Swal.fire({
+          title: "Deleted!",
+          text: "User has been deleted successfully.",
+          icon: "success",
+          confirmButtonColor: "#050F2A",
+          customClass: {
+            popup: "rounded-[32px]",
+          },
+        });
+        fetchUsers();
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: error.message || "Failed to delete user",
+          confirmButtonColor: "#050F2A",
+        });
+      }
+    }
+  };
+
+  const filteredUsers = users.filter(
+    (user) =>
+      `${user.Firstname} ${user.LastName}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      user.Email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -44,7 +108,9 @@ const Customers = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black text-[#050F2A]">Customers</h1>
-          <p className="text-gray-500 mt-1">Manage and view all registered users in your system.</p>
+          <p className="text-gray-500 mt-1">
+            Manage and view all registered users in your system.
+          </p>
         </div>
         <div className="bg-[#A78BFA]/10 text-[#A78BFA] px-6 py-3 rounded-2xl font-bold flex items-center gap-2 border border-[#A78BFA]/20">
           <Users size={20} />
@@ -55,9 +121,12 @@ const Customers = () => {
       {/* Controls */}
       <div className="bg-white p-4 rounded-[24px] border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input 
-            type="text" 
+          <Search
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+            size={18}
+          />
+          <input
+            type="text"
             placeholder="Search by name, email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -72,38 +141,61 @@ const Customers = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-8 py-5 text-sm font-bold text-[#050F2A] uppercase tracking-wider">User Info</th>
-                <th className="px-8 py-5 text-sm font-bold text-[#050F2A] uppercase tracking-wider">Contact</th>
-                <th className="px-8 py-5 text-sm font-bold text-[#050F2A] uppercase tracking-wider">Role</th>
-                <th className="px-8 py-5 text-sm font-bold text-[#050F2A] uppercase tracking-wider">Joined At</th>
-                <th className="px-8 py-5 text-sm font-bold text-[#050F2A] uppercase tracking-wider text-right">Actions</th>
+                <th className="px-8 py-5 text-sm font-bold text-[#050F2A] uppercase tracking-wider">
+                  User Info
+                </th>
+                <th className="px-8 py-5 text-sm font-bold text-[#050F2A] uppercase tracking-wider">
+                  Contact
+                </th>
+                <th className="px-8 py-5 text-sm font-bold text-[#050F2A] uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-8 py-5 text-sm font-bold text-[#050F2A] uppercase tracking-wider">
+                  Joined At
+                </th>
+                <th className="px-8 py-5 text-sm font-bold text-[#050F2A] uppercase tracking-wider text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="px-8 py-20 text-center text-gray-400 font-medium">
+                  <td
+                    colSpan="5"
+                    className="px-8 py-20 text-center text-gray-400 font-medium"
+                  >
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#050F2A] mx-auto mb-4"></div>
                     Loading users...
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-8 py-20 text-center text-gray-400 font-medium">
+                  <td
+                    colSpan="5"
+                    className="px-8 py-20 text-center text-gray-400 font-medium"
+                  >
                     No users found matching your search.
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
+                  <tr
+                    key={user.id}
+                    className="hover:bg-gray-50/50 transition-colors group"
+                  >
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-[#A78BFA] group-hover:text-white transition-all">
                           <UserIcon size={20} />
                         </div>
                         <div>
-                          <p className="font-bold text-[#050F2A]">{user.Firstname} {user.LastName}</p>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">User ID: #{user.id}</p>
+                          <p className="font-bold text-[#050F2A]">
+                            {user.Firstname} {user.LastName}
+                          </p>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                            User ID: #{user.id}
+                          </p>
                         </div>
                       </div>
                     </td>
@@ -120,7 +212,7 @@ const Customers = () => {
                       </div>
                     </td>
                     <td className="px-8 py-5">
-                      {user.role === 'admin' ? (
+                      {user.role === "admin" ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold border border-emerald-100">
                           <ShieldCheck size={14} /> Admin
                         </span>
@@ -137,9 +229,20 @@ const Customers = () => {
                       </div>
                     </td>
                     <td className="px-8 py-5 text-right">
-                      <button className="p-2.5 rounded-xl text-gray-400 hover:text-[#050F2A] hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-100 transition-all">
-                        <MoreVertical size={18} />
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() =>
+                            handleDeleteUser(
+                              user.id,
+                              `${user.Firstname} ${user.LastName}`,
+                            )
+                          }
+                          className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 border border-transparent hover:border-red-100 transition-all"
+                          title="Delete User"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

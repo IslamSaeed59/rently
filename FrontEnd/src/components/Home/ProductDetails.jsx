@@ -10,9 +10,12 @@ import {
   ShieldCheck,
   Clock,
   Calendar as CalendarIcon,
+  ChevronDown,
 } from "lucide-react";
 import { getProductById, getProductAvailability, toggleFavorite, checkFavoriteStatus } from "../../server/ProductsApi";
 import { initiateChat } from "../../server/ChatApi";
+import ProductReviews from "./ProductReviews";
+
 
 const FunctionalCalendar = ({ onDateChange, blockedDates = [] }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -242,7 +245,6 @@ const ProductDetails = () => {
   const [pickupTime, setPickupTime] = useState("10:00");
   const [returnTime, setReturnTime] = useState("17:00");
   const [rentalType, setRentalType] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("cash");
   const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
@@ -388,7 +390,7 @@ const ProductDetails = () => {
         pickupTime,
         returnTime,
         rentalType,
-        paymentMethod,
+        paymentMethod: "wallet",
         totalPrice,
         startDateTime: startDateTime.toISOString(),
         endDateTime: endDateTime.toISOString()
@@ -483,9 +485,25 @@ const ProductDetails = () => {
   const generateTimeOptions = () => {
     const times = [];
     for (let i = 0; i < 24; i++) {
-      const hour = i.toString().padStart(2, "0");
-      times.push(`${hour}:00`);
-      times.push(`${hour}:30`);
+      const hour24 = i;
+      const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+      const ampm = hour24 < 12 ? "AM" : "PM";
+      
+      const formatTime = (h, m) => {
+        const hh = h.toString().padStart(2, "0");
+        const mm = m.toString().padStart(2, "0");
+        return `${hh}:${mm}`;
+      };
+
+      const displayTime = (h, m) => {
+        const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+        const mm = m.toString().padStart(2, "0");
+        const ap = h < 12 ? "AM" : "PM";
+        return `${h12}:${mm} ${ap}`;
+      };
+
+      times.push({ value: formatTime(hour24, 0), label: displayTime(hour24, 0) });
+      times.push({ value: formatTime(hour24, 30), label: displayTime(hour24, 30) });
     }
     return times;
   };
@@ -682,86 +700,65 @@ const ProductDetails = () => {
 
               {rentalType === "hourly" && (
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <label className="block text-[12px] font-bold text-[#050F2A] mb-2 flex items-center gap-1.5">
-                      <Clock size={14} />
-                      Pick-up
+                  {/* Pick-up Time */}
+                  <div className="relative group">
+                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1.5 px-1">
+                      <Clock size={12} className="text-[#050F2A]" />
+                      Pick-up Time
                     </label>
-                    <select
-                      value={pickupTime}
-                      onChange={(e) => setPickupTime(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-[13px] font-medium text-[#050F2A] outline-none focus:border-[#050F2A] appearance-none bg-no-repeat bg-[right_1rem_center]"
-                      style={{
-                        backgroundImage:
-                          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\")",
-                      }}
-                    >
-                      {timeOptions.map((time) => (
-                        <option 
-                          key={`pickup-${time}`} 
-                          value={time}
-                          disabled={isTimeBlocked(time, 'pickup')}
-                          className={isTimeBlocked(time, 'pickup') ? "text-gray-300" : ""}
-                        >
-                          {time} {isTimeBlocked(time, 'pickup') ? "(Booked)" : ""}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={pickupTime}
+                        onChange={(e) => setPickupTime(e.target.value)}
+                        className="w-full bg-[#F8FAFC] border border-gray-100 rounded-2xl px-5 py-3.5 text-[14px] font-bold text-[#050F2A] outline-none focus:border-[#050F2A] focus:bg-white focus:shadow-xl focus:shadow-[#050F2A]/5 transition-all appearance-none cursor-pointer"
+                      >
+                        {timeOptions.map((time) => (
+                          <option 
+                            key={`pickup-${time.value}`} 
+                            value={time.value}
+                            disabled={isTimeBlocked(time.value, 'pickup')}
+                            className={isTimeBlocked(time.value, 'pickup') ? "text-gray-300" : "text-[#050F2A] font-medium"}
+                          >
+                            {time.label} {isTimeBlocked(time.value, 'pickup') ? "— (Booked)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-focus-within:text-[#050F2A] transition-colors">
+                        <ChevronDown size={18} />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[12px] font-bold text-[#050F2A] mb-2 flex items-center gap-1.5">
-                      <Clock size={14} />
-                      Return
+
+                  {/* Return Time */}
+                  <div className="relative group">
+                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1.5 px-1">
+                      <Clock size={12} className="text-[#050F2A]" />
+                      Return Time
                     </label>
-                    <select
-                      value={returnTime}
-                      onChange={(e) => setReturnTime(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-[13px] font-medium text-[#050F2A] outline-none focus:border-[#050F2A] appearance-none bg-no-repeat bg-[right_1rem_center]"
-                      style={{
-                        backgroundImage:
-                          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\")",
-                      }}
-                    >
-                      {timeOptions.map((time) => (
-                        <option 
-                          key={`return-${time}`} 
-                          value={time}
-                          disabled={isTimeBlocked(time, 'return')}
-                          className={isTimeBlocked(time, 'return') ? "text-gray-300" : ""}
-                        >
-                          {time} {isTimeBlocked(time, 'return') ? "(Booked)" : ""}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={returnTime}
+                        onChange={(e) => setReturnTime(e.target.value)}
+                        className="w-full bg-[#F8FAFC] border border-gray-100 rounded-2xl px-5 py-3.5 text-[14px] font-bold text-[#050F2A] outline-none focus:border-[#050F2A] focus:bg-white focus:shadow-xl focus:shadow-[#050F2A]/5 transition-all appearance-none cursor-pointer"
+                      >
+                        {timeOptions.map((time) => (
+                          <option 
+                            key={`return-${time.value}`} 
+                            value={time.value}
+                            disabled={isTimeBlocked(time.value, 'return')}
+                            className={isTimeBlocked(time.value, 'return') ? "text-gray-300" : "text-[#050F2A] font-medium"}
+                          >
+                            {time.label} {isTimeBlocked(time.value, 'return') ? "— (Booked)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-focus-within:text-[#050F2A] transition-colors">
+                        <ChevronDown size={18} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Payment Method Selection */}
-            <div className="mb-8">
-              <label className="block text-[12px] font-bold text-[#050F2A] mb-3">
-                Payment Method
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {[
-                  { id: "cash", label: "Cash" },
-                  { id: "vodafone_cash", label: "Vodafone Cash" },
-                  { id: "instapay", label: "InstaPay" },
-                ].map((method) => (
-                  <button
-                    key={method.id}
-                    onClick={() => setPaymentMethod(method.id)}
-                    className={`py-2 px-3 rounded-lg text-[12px] font-bold border transition-all ${
-                      paymentMethod === method.id
-                        ? "bg-[#050F2A] text-white border-[#050F2A]"
-                        : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    {method.label}
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* Total Summary */}
@@ -822,9 +819,13 @@ const ProductDetails = () => {
             </div>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        <ProductReviews productId={product.id} sellerId={product.seller_id} />
       </div>
     </div>
   );
 };
+
 
 export default ProductDetails;

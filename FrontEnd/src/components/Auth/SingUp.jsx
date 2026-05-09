@@ -5,6 +5,7 @@ import { registerUser, googleLogin } from "../../server/Api";
 import { toast, ToastContainer } from "react-toastify";
 import { useGoogleLogin } from "@react-oauth/google";
 import "react-toastify/dist/ReactToastify.css";
+import Swal from "sweetalert2";
 
 const months = [
   "January",
@@ -67,6 +68,20 @@ const SingUp = () => {
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setLoading(true);
+      Swal.fire({
+        title: 'Authenticating...',
+        html: 'Please wait while we connect with Google.',
+        imageUrl: '/Logo Main.png',
+        imageWidth: 150,
+        imageAlt: 'Loading...',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        background: '#2D245B',
+        color: '#fff',
+        customClass: {
+          image: 'animate-pulse drop-shadow-2xl'
+        }
+      });
       try {
         // Fetch user info from Google using the access_token
         const res = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -80,11 +95,18 @@ const SingUp = () => {
         
         localStorage.setItem("token", response.token);
         localStorage.setItem("user", JSON.stringify(response.user));
+        window.dispatchEvent(new Event("authChange"));
         
+        Swal.close();
         toast.success("Login successful!");
-        navigate("/");
+        if (response.user && response.user.verification_status !== "verified") {
+          setTimeout(() => navigate("/verify-identity"), 1000);
+        } else {
+          setTimeout(() => navigate("/"), 1000);
+        }
       } catch (err) {
         console.error(err);
+        Swal.close();
         toast.error("Google Login Failed");
       } finally {
         setLoading(false);
@@ -159,7 +181,23 @@ const SingUp = () => {
         Gender: formData.Gender,
       };
 
+      Swal.fire({
+        title: 'Creating Account...',
+        html: 'Please wait while we set up your account.',
+        imageUrl: '/Logo Main.png',
+        imageWidth: 150,
+        imageAlt: 'Loading...',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        background: '#2D245B',
+        color: '#fff',
+        customClass: {
+          image: 'animate-pulse drop-shadow-2xl'
+        }
+      });
+
       const response = await registerUser(payload);
+      Swal.close();
       toast.success(response.message || "OTP sent to your email!");
 
       // Navigate to OTP page with data
@@ -169,6 +207,7 @@ const SingUp = () => {
         });
       }, 1000);
     } catch (error) {
+      Swal.close();
       toast.error(error.message || "Registration failed");
     } finally {
       setLoading(false);

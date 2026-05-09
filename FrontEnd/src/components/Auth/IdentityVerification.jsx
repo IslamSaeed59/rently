@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { verifyId } from "../../server/Api";
 import { toast, ToastContainer } from "react-toastify";
-import { Upload, CheckCircle, AlertCircle } from "lucide-react";
+import { Upload, AlertCircle } from "lucide-react";
+import Swal from "sweetalert2";
 
 const IdentityVerification = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const [files, setFiles] = useState({
     id_front: null,
     id_back: null,
@@ -30,16 +30,45 @@ const IdentityVerification = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!files.id_front || !files.id_back) {
-      toast.error("يرجى رفع صورة وجه وخلفية البطاقة");
+      Swal.fire({
+        icon: 'error',
+        title: 'Missing Files',
+        text: 'Please upload both the front and back of your ID card.',
+        background: '#2D245B',
+        color: '#fff',
+        confirmButtonColor: '#B1A1FF',
+      });
       return;
     }
 
     if (!idNumber || idNumber.length !== 14 || !/^\d+$/.test(idNumber)) {
-      toast.error("يرجى إدخال الرقم القومي المكون من 14 رقماً صحيحاً");
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid ID',
+        text: 'Please enter a valid 14-digit National ID.',
+        background: '#2D245B',
+        color: '#fff',
+        confirmButtonColor: '#B1A1FF',
+      });
       return;
     }
 
-    setLoading(true);
+    // Show SweetAlert2 loading state with custom logo
+    Swal.fire({
+      title: 'Verifying...',
+      html: 'Please wait while we verify your identity.',
+      imageUrl: '/Logo Main.png',
+      imageWidth: 150,
+      imageAlt: 'Loading...',
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      background: '#2D245B',
+      color: '#fff',
+      customClass: {
+        image: 'animate-pulse drop-shadow-2xl'
+      }
+    });
+
     const formData = new FormData();
     formData.append("id_front", files.id_front);
     formData.append("id_back", files.id_back);
@@ -54,21 +83,35 @@ const IdentityVerification = () => {
       localStorage.setItem("user", JSON.stringify(user));
 
       if (response.status === "verified") {
+        Swal.close();
         toast.success(response.message);
         setTimeout(() => {
           navigate("/");
         }, 2000);
       } else {
-        toast.info(response.message);
+        Swal.fire({
+          icon: 'warning',
+          title: 'Verification Status',
+          text: response.message,
+          background: '#2D245B',
+          color: '#fff',
+          confirmButtonColor: '#B1A1FF',
+        });
       }
     } catch (error) {
       const errorMessage =
         typeof error === "string"
           ? error
-          : error.message || "فشل التحقق من البطاقة";
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
+          : error.message || "ID verification failed.";
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Error Occurred',
+        text: errorMessage,
+        background: '#2D245B',
+        color: '#fff',
+        confirmButtonColor: '#B1A1FF',
+      });
     }
   };
 
@@ -78,11 +121,10 @@ const IdentityVerification = () => {
       <div className="w-full max-w-4xl bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-[#B1A1FF] to-white bg-clip-text text-transparent">
-            توثيق الهوية
+            Identity Verification
           </h1>
           <p className="text-gray-400 max-w-md mx-auto">
-            من أجل سلامتك وسلامة الآخرين، يرجى إدخال الرقم القومي ورفع صورة
-            واضحة لبطاقة الهوية. سيتم فحص البيانات آلياً لضمان هويتك.
+            For your safety and the safety of others, please enter your National ID and upload a clear picture of your ID card. The data will be automatically verified to ensure your identity.
           </p>
         </div>
 
@@ -91,9 +133,9 @@ const IdentityVerification = () => {
           <div className="space-y-4">
             <label
               htmlFor="id_number"
-              className="block text-sm font-medium text-gray-300"
+              className="block text-sm font-medium text-gray-300 text-left"
             >
-              الرقم القومي (14 رقم)
+              National ID (14 digits)
             </label>
             <input
               type="text"
@@ -111,8 +153,8 @@ const IdentityVerification = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Front ID Upload */}
             <div className="space-y-4">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                وجه البطاقة
+              <label className="block text-sm font-medium text-gray-300 mb-2 text-left">
+                Front of ID
               </label>
               <div
                 onClick={() => document.getElementById("id_front").click()}
@@ -128,7 +170,7 @@ const IdentityVerification = () => {
                   <>
                     <Upload className="text-4xl text-gray-500 mb-3 group-hover:text-[#B1A1FF] transition-colors" />
                     <span className="text-gray-500 text-sm">
-                      اضغط لرفع وجه البطاقة
+                      Click to upload the front of the ID
                     </span>
                   </>
                 )}
@@ -145,8 +187,8 @@ const IdentityVerification = () => {
 
             {/* Back ID Upload */}
             <div className="space-y-4">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                ظهر البطاقة
+              <label className="block text-sm font-medium text-gray-300 mb-2 text-left">
+                Back of ID
               </label>
               <div
                 onClick={() => document.getElementById("id_back").click()}
@@ -162,7 +204,7 @@ const IdentityVerification = () => {
                   <>
                     <Upload className="text-4xl text-gray-500 mb-3 group-hover:text-[#B1A1FF] transition-colors" />
                     <span className="text-gray-500 text-sm">
-                      اضغط لرفع ظهر البطاقة
+                      Click to upload the back of the ID
                     </span>
                   </>
                 )}
@@ -180,26 +222,17 @@ const IdentityVerification = () => {
 
           <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex items-start gap-4">
             <AlertCircle className="text-blue-400 text-xl mt-1 shrink-0" />
-            <p className="text-sm text-blue-200">
-              تأكد من إدخال الرقم القومي بشكل صحيح ومطابق تماماً للصورة المرفقة.
-              سيتم مراجعة البيانات آلياً لتوثيق هويتك.
+            <p className="text-sm text-blue-200 text-left">
+              Make sure to enter the National ID correctly and exactly as it appears in the attached image. The data will be automatically reviewed to verify your identity.
             </p>
           </div>
 
           <div className="flex justify-center pt-4">
             <button
-              disabled={loading}
               type="submit"
-              className="bg-[#B1A1FF] text-black font-bold py-4 px-16 rounded-xl hover:bg-[#9a89f0] transition-all shadow-[0_0_20px_rgba(177,161,255,0.3)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
+              className="bg-[#B1A1FF] text-black font-bold py-4 px-16 rounded-xl hover:bg-[#9a89f0] transition-all shadow-[0_0_20px_rgba(177,161,255,0.3)] active:scale-[0.98] flex items-center gap-3"
             >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                  جاري الفحص...
-                </>
-              ) : (
-                "إرسال للتحقق"
-              )}
+              Submit for Verification
             </button>
           </div>
         </form>

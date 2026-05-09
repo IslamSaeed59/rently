@@ -58,6 +58,11 @@ const OTP = () => {
           () => navigate("/reset-password", { state: { email, otp: otpCode } }),
           1500,
         );
+      } else if (response.token) {
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("user", JSON.stringify(response.user));
+        window.dispatchEvent(new Event("authChange"));
+        setTimeout(() => navigate("/verify-identity"), 1500);
       } else {
         setTimeout(() => navigate("/login"), 1500);
       }

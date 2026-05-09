@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Loader2,
   Heart,
+  Wallet,
 } from "lucide-react";
 import { getProfile } from "../../server/Api";
 
@@ -68,6 +69,12 @@ const ProfileIndex = () => {
       title: "My Favorites",
       description: "Items you've saved for later",
       path: "/profile/favorites",
+    },
+    {
+      icon: <Wallet size={18} className="text-white" strokeWidth={2.5} />,
+      title: "My Wallet",
+      description: "Manage your balance and withdrawals",
+      path: "/profile/wallet",
     },
     // {
     //   icon: <Receipt size={18} className="text-white" strokeWidth={2.5} />,

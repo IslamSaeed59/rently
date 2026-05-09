@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { loginUser, googleLogin } from "../../server/Api";
 import { toast, ToastContainer } from "react-toastify";
 import { useGoogleLogin } from "@react-oauth/google";
+import Swal from "sweetalert2";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -20,6 +21,20 @@ const Login = () => {
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setLoading(true);
+      Swal.fire({
+        title: 'Authenticating...',
+        html: 'Please wait while we connect with Google.',
+        imageUrl: '/Logo Main.png',
+        imageWidth: 150,
+        imageAlt: 'Loading...',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        background: '#2D245B',
+        color: '#fff',
+        customClass: {
+          image: 'animate-pulse drop-shadow-2xl'
+        }
+      });
       try {
         // Fetch user info from Google
         await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -33,10 +48,17 @@ const Login = () => {
         localStorage.setItem("user", JSON.stringify(response.user));
         window.dispatchEvent(new Event("authChange"));
 
+        Swal.close();
         toast.success("Welcome back! Logging in...");
-        setTimeout(() => navigate("/"), 1000);
+        
+        if (response.user && response.user.verification_status !== "verified") {
+          setTimeout(() => navigate("/verify-identity"), 1000);
+        } else {
+          setTimeout(() => navigate("/"), 1000);
+        }
       } catch (err) {
         console.error(err);
+        Swal.close();
         toast.error("Google Login Failed");
       } finally {
         setLoading(false);
@@ -49,6 +71,21 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
+    Swal.fire({
+      title: 'Logging in...',
+      html: 'Please wait while we verify your credentials.',
+      imageUrl: '/Logo Main.png',
+      imageWidth: 150,
+      imageAlt: 'Loading...',
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      background: '#2D245B',
+      color: '#fff',
+      customClass: {
+        image: 'animate-pulse drop-shadow-2xl'
+      }
+    });
+
     try {
       const response = await loginUser(formData.identifier, formData.Password);
 
@@ -57,12 +94,16 @@ const Login = () => {
       localStorage.setItem("user", JSON.stringify(response.user));
       window.dispatchEvent(new Event("authChange"));
 
+      Swal.close();
       toast.success("Welcome back! Logging in...");
 
-      setTimeout(() => {
-        navigate("/");
-      }, 1000);
+      if (response.user && response.user.verification_status !== "verified") {
+        setTimeout(() => navigate("/verify-identity"), 1000);
+      } else {
+        setTimeout(() => navigate("/"), 1000);
+      }
     } catch (error) {
+      Swal.close();
       const errorMessage = typeof error === 'string' ? error : (error.message || "Invalid credentials");
       toast.error(errorMessage);
     } finally {

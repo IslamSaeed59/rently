@@ -39,7 +39,7 @@ const Rental = {
 
   findAll: async (filters = {}) => {
     let query = `
-      SELECT r.*, p.name as product_name, 
+      SELECT r.*, p.name as product_name, p.seller_id,
              CONCAT(b.Firstname, ' ', b.LastName) as buyer_name,
              CONCAT(s.Firstname, ' ', s.LastName) as seller_name
       FROM rentals r
@@ -78,7 +78,7 @@ const Rental = {
 
   findById: async (id) => {
     const [rows] = await pool.query(
-      `SELECT r.*, p.name as product_name, 
+      `SELECT r.*, p.name as product_name, p.seller_id,
               CONCAT(b.Firstname, ' ', b.LastName) as buyer_name,
               CONCAT(s.Firstname, ' ', s.LastName) as seller_name
        FROM rentals r

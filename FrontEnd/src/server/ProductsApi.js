@@ -190,6 +190,42 @@ export const updatePaymentStatus = async (id, paymentData) => {
   }
 };
 
+export const confirmReturn = async (rentalId) => {
+  try {
+    const response = await ProductsApi.post("payments/confirm-return", { rental_id: rentalId });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const getAllRequests = async () => {
+  try {
+    const response = await ProductsApi.get("rental-requests/all");
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const reportIssue = async (rentalId, reason) => {
+  try {
+    const response = await ProductsApi.post("payments/report-issue", { rental_id: rentalId, reason });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const resolveDispute = async (disputeData) => {
+  try {
+    const response = await ProductsApi.post("payments/resolve-dispute", disputeData);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
 // Availability & Blackouts
 export const getProductAvailability = async (productId, params = {}) => {
   try {
@@ -255,4 +291,33 @@ export const checkFavoriteStatus = async (productId) => {
   }
 };
 
+// Reviews
+export const getProductReviews = async (productId) => {
+  try {
+    const response = await ProductsApi.get(`reviews/${productId}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const addProductReview = async (reviewData) => {
+  try {
+    const response = await ProductsApi.post("reviews", reviewData);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const deleteProductReview = async (id) => {
+  try {
+    const response = await ProductsApi.delete(`reviews/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
 export default ProductsApi;
+

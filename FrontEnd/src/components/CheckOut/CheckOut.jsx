@@ -11,8 +11,10 @@ import {
   ArrowRight,
   MapPin,
   CheckCircle2,
+  Wallet,
 } from "lucide-react";
 import { createRentalRequest } from "../../server/ProductsApi";
+import { getWalletData } from "../../server/Api";
 
 const CheckOut = () => {
   const location = useLocation();
@@ -30,6 +32,22 @@ const CheckOut = () => {
   } = location.state || {};
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(null);
+
+  React.useEffect(() => {
+    const fetchWallet = async () => {
+      try {
+        const data = await getWalletData();
+        setWalletBalance(data.wallet.available_balance);
+      } catch (error) {
+        console.error("Error fetching wallet:", error);
+      }
+    };
+    fetchWallet();
+  }, []);
+
+  const totalAmount = Number(totalPrice) + Number(product.deposit_amount || 0);
+  const hasEnoughBalance = walletBalance !== null && walletBalance >= totalAmount;
 
   if (!product) {
     return (
@@ -164,20 +182,17 @@ const CheckOut = () => {
             <section>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-black text-[#050F2A]">Payment Method</h2>
-                <button onClick={() => navigate(-1)} className="text-[#050F2A] font-bold text-sm underline hover:text-gray-600">
-                  Change
-                </button>
               </div>
               
               <div className="bg-white border border-gray-200 rounded-2xl p-6 flex items-center gap-4 shadow-sm">
                 <div className="w-12 h-12 bg-[#F8FAFC] rounded-xl flex items-center justify-center text-[#050F2A]">
-                  <CreditCard size={24} />
+                  <Wallet size={24} className="text-[#A78BFA]" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-[#050F2A] capitalize">
-                    {paymentMethod.replace('_', ' ')}
+                  <h4 className="font-bold text-[#050F2A]">
+                    Rently Wallet Balance
                   </h4>
-                  <p className="text-sm text-gray-500">Pay directly to the seller upon arrival or via transfer</p>
+                  <p className="text-sm text-gray-500">Funds will be held in escrow until rental is complete</p>
                 </div>
                 <div className="ml-auto">
                   <CheckCircle2 size={20} className="text-green-500" />
@@ -186,7 +201,7 @@ const CheckOut = () => {
             </section>
 
             <hr className="border-gray-100" />
-
+            
             {/* Seller info & Safety */}
             <section className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
               <div className="flex gap-4">
@@ -202,6 +217,28 @@ const CheckOut = () => {
                 </div>
               </div>
             </section>
+
+            {/* Wallet Balance Warning */}
+            {walletBalance !== null && !hasEnoughBalance && (
+              <section className="bg-orange-50 rounded-2xl p-6 border border-orange-100">
+                <div className="flex gap-4">
+                  <div className="text-orange-600 flex-shrink-0">
+                    <Info size={28} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-orange-900 mb-1">Insufficient Wallet Balance</h4>
+                    <p className="text-sm text-orange-700 leading-relaxed">
+                      Your current balance is <strong>{walletBalance} EGP</strong>. 
+                      You will need to top up your wallet with at least <strong>{(totalAmount - walletBalance).toFixed(2)} EGP</strong> 
+                      more to pay for this rental once the seller accepts your request.
+                    </p>
+                    <Link to="/profile/wallet" className="inline-block mt-3 text-sm font-bold underline hover:text-orange-900">
+                      Top up now
+                    </Link>
+                  </div>
+                </div>
+              </section>
+            )}
           </div>
 
           {/* Right Column: Price Summary Card */}
@@ -254,15 +291,19 @@ const CheckOut = () => {
               <div className="flex justify-between items-center mb-8">
                 <span className="text-lg font-black text-[#050F2A]">Total (EGP)</span>
                 <span className="text-2xl font-black text-[#050F2A]">
-                  {Number(totalPrice) + Number(product.deposit_amount || 0)} EGP
+                  {totalAmount} EGP
                 </span>
               </div>
 
               {/* Final Button */}
               <button
                 onClick={handleConfirmBooking}
-                disabled={isSubmitting}
-                className={`w-full bg-[#050F2A] text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 hover:opacity-90 transition-all active:scale-[0.98] ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""}`}
+                disabled={isSubmitting || (walletBalance !== null && !hasEnoughBalance)}
+                className={`w-full font-black py-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] ${
+                  isSubmitting || (walletBalance !== null && !hasEnoughBalance)
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                    : "bg-[#050F2A] text-white hover:opacity-90 shadow-lg"
+                }`}
               >
                 {isSubmitting ? (
                   <>
@@ -271,7 +312,7 @@ const CheckOut = () => {
                   </>
                 ) : (
                   <>
-                    Confirm Booking
+                    {walletBalance !== null && !hasEnoughBalance ? "Insufficient Balance" : "Confirm Booking"}
                     <ArrowRight size={20} />
                   </>
                 )}

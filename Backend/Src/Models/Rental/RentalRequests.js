@@ -35,12 +35,14 @@ const RentalRequest = {
     let query = `
       SELECT rr.*, p.name as product_name, pi.image_url as primary_image,
              CONCAT(b.Firstname, ' ', b.LastName) as buyer_name,
-             CONCAT(s.Firstname, ' ', s.LastName) as seller_name
+             CONCAT(s.Firstname, ' ', s.LastName) as seller_name,
+             r.payment_status, r.id as rental_id, r.dispute_status, r.dispute_reason, r.deposit_paid
       FROM rental_requests rr
       JOIN products p ON rr.product_id = p.id
       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = TRUE
       JOIN users b ON rr.buyer_id = b.id
       JOIN users s ON rr.seller_id = s.id
+      LEFT JOIN rentals r ON rr.id = r.rental_request_id
       WHERE 1=1
     `;
     const params = [];
@@ -71,12 +73,14 @@ const RentalRequest = {
       `SELECT rr.*, p.name as product_name, pi.image_url as primary_image,
               CONCAT(b.Firstname, ' ', b.LastName) as buyer_name,
               CONCAT(s.Firstname, ' ', s.LastName) as seller_name,
-              rr.payment_method
+              rr.payment_method,
+              r.payment_status, r.id as rental_id
        FROM rental_requests rr
        JOIN products p ON rr.product_id = p.id
        LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = TRUE
        JOIN users b ON rr.buyer_id = b.id
        JOIN users s ON rr.seller_id = s.id
+       LEFT JOIN rentals r ON rr.id = r.rental_request_id
        WHERE rr.id = ?`,
       [id],
     );

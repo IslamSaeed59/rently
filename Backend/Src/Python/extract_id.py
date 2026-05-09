@@ -49,15 +49,7 @@ def process_image(image_path):
         full_text = " ".join([item['text'] for item in lines])
         normalized_text = arabic_to_english_digits(full_text)
         
-        # 1. Keywords (Check independently because EasyOCR might scramble word order)
-        has_id_word = bool(re.search(r'بطاق[ةه]', normalized_text))
-        has_investigation_word = bool(re.search(r'تحقيق', normalized_text))
-        has_personal_word = bool(re.search(r'الشخصي[ةه]', normalized_text))
-        has_national_word = bool(re.search(r'القومي', normalized_text))
-        
-        has_keywords = (has_id_word and (has_investigation_word or has_personal_word)) or has_national_word
-        
-        # 2. Extract 14-digit ID
+        # 1. Extract 14-digit ID
         # Since EasyOCR chunks the ID number, let's find the line with the most digits.
         # Often the ID number is on its own line at the bottom.
         # Let's cluster by Y
@@ -85,6 +77,15 @@ def process_image(image_path):
             if match:
                 id_number = match.group(1)
                 break
+
+        # 2. Keywords (Check independently because EasyOCR might scramble word order)
+        # We use tolerant matching because OCR often misreads Arabic on noisy ID backgrounds
+        has_id_word = bool(re.search(r'بطاق[ةه]', normalized_text))
+        has_personal_word = bool(re.search(r'[شس]خصي[ةه]', normalized_text))
+        has_national_word = bool(re.search(r'قومي', normalized_text))
+        
+        # Consider it valid if it has ANY of the main ID keywords OR if it successfully extracted a 14-digit ID
+        has_keywords = has_id_word or has_personal_word or has_national_word or (id_number is not None)
 
         return {
             "success": True,

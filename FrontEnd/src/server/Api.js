@@ -230,10 +230,56 @@ export const getAllUsers = async () => {
   }
 };
 
+export const deleteUser = async (id) => {
+  try {
+    const response = await api.delete(`users/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
 // AI API
 export const chatWithAI = async (message) => {
   try {
     const response = await api.post("ai/chat", { message });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+// Payment & Wallet API
+export const payForRental = async (paymentData) => {
+  try {
+    const response = await api.post("payments/pay", paymentData);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const completeRental = async (rental_id) => {
+  try {
+    const response = await api.post("payments/complete-rental", { rental_id });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const getWalletData = async () => {
+  try {
+    const response = await api.get("payments/wallet");
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const requestWithdrawal = async (withdrawalData) => {
+  try {
+    const response = await api.post("payments/wallet/withdraw", withdrawalData);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;

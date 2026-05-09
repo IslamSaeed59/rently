@@ -10,6 +10,8 @@ import {
   TrendingUp,
   Mail,
   Store,
+  Wallet,
+  ShieldAlert,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -18,8 +20,9 @@ const NAV_ITEMS = [
   { name: "Products", icon: Package, path: "/admin/products" },
   { name: "Categories", icon: Grid, path: "/admin/categories" },
   { name: "Customers", icon: Users, path: "/admin/customers" },
-  // { name: "Analytics", icon: TrendingUp, path: "/admin/analytics" },
+  { name: "Disputes", icon: ShieldAlert, path: "/admin/disputes" },
   { name: "Messages", icon: Mail, path: "/admin/messages" },
+  { name: "Withdrawals", icon: Wallet, path: "/admin/withdrawals" },
   { name: "Store", icon: Store, path: "/" },
 ];
 

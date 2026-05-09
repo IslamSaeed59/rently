@@ -85,6 +85,13 @@ const getDashboardStats = async (req, res) => {
     const pendingCount =
       requestStats.find((r) => r.status === "pending")?.count || 0;
 
+    // 9. Platform Commission (Admin Wallet Balance)
+    const [adminWallet] = await db.execute(`
+      SELECT available_balance FROM wallets 
+      WHERE user_id = (SELECT id FROM users WHERE Email = 'admin@gmail.com' LIMIT 1)
+    `);
+    const platformCommission = adminWallet[0]?.available_balance || 0;
+
     const finalData = {
       stats: [
         {
@@ -100,15 +107,15 @@ const getDashboardStats = async (req, res) => {
           isUp: true,
         },
         {
-          name: "Pending Requests",
-          value: pendingCount,
-          trend: `EGP ${pendingRevenue} pending`,
-          isUp: false,
+          name: "Platform Fees (10%)",
+          value: `EGP ${platformCommission}`,
+          trend: "Total Earned",
+          isUp: true,
         },
         {
-          name: "Total Revenue",
+          name: "Accepted Volume",
           value: `EGP ${acceptedRevenue}`,
-          trend: "Cleared",
+          trend: "Total Volume",
           isUp: true,
         },
       ],

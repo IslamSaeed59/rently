@@ -149,7 +149,27 @@ const authController = {
         // Delete OTP
         await authModel.deleteOtp(Email);
 
-        return res.status(201).json({ message: "Account created successfully", userId });
+        // Generate JWT
+        const token = jwt.sign(
+          { userId: userId, Email: Email },
+          process.env.JWT_SECRET || "your_secret_key",
+          { expiresIn: "5h" }
+        );
+
+        const user = {
+          id: userId,
+          Firstname: userData.Firstname,
+          LastName: userData.LastName,
+          Email: Email,
+          verification_status: "pending",
+        };
+
+        return res.status(201).json({ 
+          message: "Account created successfully", 
+          userId,
+          token,
+          user
+        });
       }
 
       // If no userData, it's just a verification step (e.g. for reset password)

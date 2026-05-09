@@ -28,6 +28,7 @@ import MyRentals from "./components/Rentals/MyRentlas";
 import CategoriesProducts from "./components/Categories/CategoriesProducts";
 import CheckOut from "./components/CheckOut/CheckOut";
 import Favorites from "./components/Profile/Favorites";
+import Wallet from "./components/Profile/Wallet";
 import Chat from "./Pages/Chat/Chat";
 import Contact from "./Pages/Contact/Contact";
 import About from "./Pages/About/About";
@@ -43,7 +44,9 @@ import Categories from "./Pages/Admin/Categories/Categories";
 import CreatCategories from "./components/Admin/Categories/CreatCategories";
 import EditCategories from "./components/Admin/Categories/EditCategories";
 import Customers from "./Pages/Admin/Customers/Customers";
+import AdminWithdrawals from "./Pages/Admin/Withdrawals";
 import ALLChat from "./components/Admin/Messages/ALLChat";
+import AdminDisputes from "./Pages/Admin/Disputes";
 
 const App = () => {
   return (
@@ -73,6 +76,7 @@ const App = () => {
               <Route path="profile/my-rentals" element={<MyRentals />} />
               <Route path="checkout" element={<CheckOut />} />
               <Route path="profile/favorites" element={<Favorites />} />
+              <Route path="profile/wallet" element={<Wallet />} />
               <Route path="chat" element={<Chat />} />
               <Route path="verify-identity" element={<IdentityVerification />} />
             </Route>
@@ -98,6 +102,8 @@ const App = () => {
               <Route path="categories/edit/:id" element={<EditCategories />} />
 
               <Route path="customers" element={<Customers />} />
+              <Route path="withdrawals" element={<AdminWithdrawals />} />
+              <Route path="disputes" element={<AdminDisputes />} />
               <Route path="analytics" element={<div>Analytics View</div>} />
               <Route path="messages" element={<ALLChat />} />
               <Route path="settings" element={<div>Admin Settings</div>} />

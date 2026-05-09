@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { getMyRequests, updateRequestStatus } from "../../server/ProductsApi";
-import { getAllCategories } from "../../server/Api";
+import { getAllCategories, payForRental, completeRental } from "../../server/Api";
+import Swal from "sweetalert2";
 
 const MyRentals = () => {
   const [rentals, setRentals] = useState([]);
@@ -77,6 +78,11 @@ const MyRentals = () => {
       const now = new Date();
       const start = new Date(rental.start_datetime);
       const end = new Date(rental.end_datetime);
+
+      // New: Check if paid first
+      if (rental.payment_status !== "held_in_escrow" && rental.payment_status !== "released_to_lessor") {
+        return { label: "Payment Required", color: "amber", icon: <Timer size={14} /> };
+      }
 
       if (now < start) return { label: "Starting Soon", color: "blue", icon: <Calendar size={14} /> };
       if (now >= start && now <= end) return { label: "Active Now", color: "green", icon: <CheckCircle2 size={14} /> };
@@ -152,13 +158,125 @@ const MyRentals = () => {
   };
 
   const handleCancelRequest = async (id) => {
-    if (!window.confirm("Are you sure you want to cancel this request?")) return;
-    try {
-      await updateRequestStatus(id, "cancelled_by_buyer");
-      toast.success("Request cancelled");
-      fetchRentals();
-    } catch (error) {
-      toast.error("Error cancelling request");
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You want to cancel this request?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#EF4444',
+      cancelButtonColor: '#050F2A',
+      confirmButtonText: 'Yes, cancel it!'
+    });
+    
+    if (result.isConfirmed) {
+      try {
+        await updateRequestStatus(id, "cancelled_by_buyer");
+        toast.success("Request cancelled");
+        fetchRentals();
+      } catch (error) {
+        toast.error("Error cancelling request");
+      }
+    }
+  };
+
+  const handlePayNow = async (rental) => {
+    const commissionPercentage = 10;
+    const platformFee = (rental.total_price * commissionPercentage) / 100;
+    const basePrice = rental.total_price - platformFee;
+
+    const { value: confirmed } = await Swal.fire({
+      title: 'Confirm Payment',
+      html: `
+        <div class="text-left space-y-4 p-4">
+          <div class="bg-gray-50 rounded-2xl p-4 space-y-2 border border-gray-100">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-500">Rental Price:</span>
+              <span class="font-bold text-[#050F2A]">${basePrice.toFixed(2)} EGP</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-500">Platform Fee (${commissionPercentage}%):</span>
+              <span class="font-bold text-blue-600">+ ${platformFee.toFixed(2)} EGP</span>
+            </div>
+            <div class="pt-2 border-t border-gray-200 flex justify-between">
+              <span class="font-black text-[#050F2A]">Total Amount:</span>
+              <span class="font-black text-[#050F2A]">${rental.total_price} EGP</span>
+            </div>
+          </div>
+          <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
+            <p class="text-xs text-blue-700 leading-relaxed">
+              <strong>Wallet Payment:</strong> The total amount will be deducted from your available wallet balance. Please ensure you have enough funds before proceeding.
+            </p>
+          </div>
+          <p class="text-[10px] text-gray-400 text-center italic">Funds are held securely in escrow until you confirm receipt.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Confirm & Pay',
+      confirmButtonColor: '#050F2A',
+    });
+
+    if (confirmed) {
+      try {
+        Swal.fire({
+          title: 'Processing Payment...',
+          didOpen: () => Swal.showLoading()
+        });
+
+        await payForRental({ 
+          rental_request_id: rental.id, 
+          card_details: { type: 'wallet' } // Sending dummy data to satisfy backend if needed, but backend now uses userId
+        });
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Payment Successful',
+          text: 'Funds are now held in escrow safely!',
+          confirmButtonColor: '#050F2A'
+        });
+        fetchRentals();
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Payment Failed',
+          text: error.message || 'Something went wrong'
+        });
+      }
+    }
+  };
+
+  const handleCompleteRental = async (rental) => {
+    const result = await Swal.fire({
+      title: 'Confirm Completion',
+      text: 'Are you sure the rental is finished? This will release the funds to the seller.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Complete',
+      confirmButtonColor: '#050F2A'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        Swal.fire({
+          title: 'Releasing Funds...',
+          didOpen: () => Swal.showLoading()
+        });
+
+        await completeRental(rental.rental_id);
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Rental Completed',
+          text: 'Funds have been released to the seller.',
+          confirmButtonColor: '#050F2A'
+        });
+        fetchRentals();
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message || 'Failed to complete rental'
+        });
+      }
     }
   };
 
@@ -385,18 +503,61 @@ const MyRentals = () => {
                         </div>
 
                         {/* Price & Primary Action */}
-                        <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
-                          <div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Total Paid</p>
-                            <p className="text-xl font-black text-[#050F2A]">{rental.total_price} <span className="text-[10px]">EGP</span></p>
+                        <div className="mt-auto pt-4 border-t border-gray-50 flex flex-col gap-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Total Amount</p>
+                              <p className="text-xl font-black text-[#050F2A]">{rental.total_price} <span className="text-[10px]">EGP</span></p>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              {rental.request_status === "accepted" && rental.payment_status === "pending" && (
+                                <button 
+                                  onClick={() => handlePayNow(rental)}
+                                  className="bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-xs hover:bg-green-700 transition-all shadow-lg shadow-green-200"
+                                >
+                                  Pay Now
+                                </button>
+                              )}
+                              
+                              {rental.payment_status === "held_in_escrow" && (status.label === "Active Now" || status.label === "Completed") && (
+                                <button 
+                                  onClick={() => handleCompleteRental(rental)}
+                                  className="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+                                >
+                                  Complete
+                                </button>
+                              )}
+                              
+                              {rental.payment_status === "held_in_escrow" && (
+                                <span className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                                  In Escrow
+                                </span>
+                              )}
+                              
+                              {rental.payment_status === "released_to_lessor" && (
+                                <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                                  Released
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <Link 
-                            to={`/product/${rental.product_id}`}
-                            className="bg-[#050F2A] text-white px-5 py-3 rounded-xl font-bold text-xs hover:bg-blue-600 transition-all flex items-center gap-2 group/btn"
-                          >
-                            Details
-                            <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
-                          </Link>
+
+                          <div className="flex items-center justify-between">
+                            <Link 
+                              to={`/product/${rental.product_id}`}
+                              className="text-gray-400 text-[10px] font-bold hover:text-black transition-colors underline decoration-dotted"
+                            >
+                              View Product Details
+                            </Link>
+                            <Link 
+                              to={`/product/${rental.product_id}`}
+                              className="bg-[#050F2A] text-white px-5 py-3 rounded-xl font-bold text-xs hover:bg-blue-600 transition-all flex items-center gap-2 group/btn"
+                            >
+                              Details
+                              <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>

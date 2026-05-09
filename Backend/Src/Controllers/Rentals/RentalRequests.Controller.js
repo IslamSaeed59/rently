@@ -84,6 +84,11 @@ const getMyRequests = async (req, res) => {
 const getReceivedRequests = async (req, res) => {
   try {
     const seller_id = req.user.userId || req.user.id;
+    
+    // Auto-release any completed rentals for this seller before fetching
+    const Wallet = require("../../Models/Wallet");
+    await Wallet.autoReleaseEscrow(seller_id);
+
     const requests = await RentalRequest.findBySellerId(seller_id);
     res.status(200).json(requests);
   } catch (error) {
@@ -122,6 +127,15 @@ const updateRequestStatus = async (req, res) => {
     if (success) {
       // If accepted, create a rental record and a blackout to block these dates
       if (status === "accepted") {
+        const product = await Product.findById(request.product_id);
+        if (!product) {
+          return res.status(404).json({ message: "Product no longer exists" });
+        }
+
+        // Separate rental fee and deposit
+        const depositPaid = parseFloat(product.deposit_amount || 0);
+        const rentalFee = parseFloat(request.total_price) - depositPaid;
+
         // Create Rental record
         const rentalId = await Rental.create({
           product_id: request.product_id,
@@ -129,7 +143,8 @@ const updateRequestStatus = async (req, res) => {
           start_datetime: request.start_datetime,
           end_datetime: request.end_datetime,
           rental_type: request.rental_type,
-          total_price: request.total_price,
+          total_price: rentalFee,
+          deposit_paid: depositPaid,
           rental_request_id: request.id,
           payment_method: request.payment_method,
           payment_status: "pending",

@@ -23,6 +23,8 @@ const chatRoutes = require("./Src/Routes/ChatRoutes");
 const notificationRoutes = require("./Src/Routes/notificationRoutes");
 const adminStatsRoutes = require("./Src/Routes/Admin/AdminStatsRoutes");
 const aiRoutes = require("./Src/Routes/aiRoutes");
+const paymentRoutes = require("./Src/Routes/PaymentRoutes");
+const productReviewRoutes = require("./Src/Routes/ProductReviewRoutes");
 
 
 const http = require("http");
@@ -54,6 +56,9 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin", adminStatsRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/reviews", productReviewRoutes);
+
 
 // Initialize Socket Handler
 socketHandler(io);

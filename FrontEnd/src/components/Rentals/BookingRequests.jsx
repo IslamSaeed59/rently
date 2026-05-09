@@ -11,7 +11,7 @@ import {
   TrendingUp,
   AlertCircle,
 } from "lucide-react";
-import { getReceivedRequests, updateRequestStatus } from "../../server/ProductsApi";
+import { getReceivedRequests, updateRequestStatus, confirmReturn, reportIssue } from "../../server/ProductsApi";
 
 const BookingRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -63,6 +63,29 @@ const BookingRequests = () => {
     }
   };
 
+  const handleConfirmReturn = async (rentalId) => {
+    try {
+      await confirmReturn(rentalId);
+      toast.success("Return confirmed! Funds released successfully.");
+      fetchRequests();
+    } catch (error) {
+      toast.error(error.message || "Failed to confirm return");
+    }
+  };
+
+  const handleReportIssue = async (rentalId) => {
+    const reason = window.prompt("Please describe the issue with the returned item:");
+    if (!reason) return;
+
+    try {
+      await reportIssue(rentalId, reason);
+      toast.warning("Issue reported. Rental fee released, deposit held for admin review.");
+      fetchRequests();
+    } catch (error) {
+      toast.error(error.message || "Failed to report issue");
+    }
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case "pending":
@@ -89,6 +112,35 @@ const BookingRequests = () => {
       default:
         return null;
     }
+  };
+
+  const getPaymentStatusBadge = (request) => {
+    if (request.request_status !== "accepted") return null;
+
+    if (request.payment_status === "held_in_escrow") {
+      return (
+        <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-bold border border-blue-100">
+          <CheckCircle size={12} />
+          PAID & IN ESCROW
+        </div>
+      );
+    }
+
+    if (request.payment_status === "released_to_lessor") {
+      return (
+        <div className="flex items-center gap-1.5 px-2 py-1 bg-purple-50 text-purple-600 rounded-full text-[10px] font-bold border border-purple-100">
+          <TrendingUp size={12} />
+          FUNDS RELEASED
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-1.5 px-2 py-1 bg-orange-50 text-orange-600 rounded-full text-[10px] font-bold border border-orange-100 animate-pulse">
+        <Clock size={12} />
+        AWAITING PAYMENT
+      </div>
+    );
   };
 
   if (loading && requests.length === 0) {
@@ -182,6 +234,7 @@ const BookingRequests = () => {
                   <h3 className="font-bold text-[#050F2A] text-[16px] mb-2">{request.product_name}</h3>
                   <div className="flex flex-wrap gap-2 mb-3">
                     {getStatusBadge(request.request_status)}
+                    {getPaymentStatusBadge(request)}
                     <span className="text-[11px] text-gray-400 font-medium self-center">• Requested {new Date(request.created_at).toLocaleDateString()}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -242,9 +295,27 @@ const BookingRequests = () => {
                       </button>
                     </>
                   ) : (
-                    <button className="px-8 py-2.5 bg-gray-100 text-[#050F2A] font-bold text-[13px] rounded-xl hover:bg-gray-200 transition-all min-w-[140px]">
-                      Manage Booking
-                    </button>
+                    <div className="flex flex-col gap-2">
+                      <button className="px-8 py-2.5 bg-gray-100 text-[#050F2A] font-bold text-[13px] rounded-xl hover:bg-gray-200 transition-all min-w-[140px]">
+                        Manage Booking
+                      </button>
+                      {request.payment_status === "held_in_escrow" && (
+                        <button 
+                          onClick={() => handleConfirmReturn(request.rental_id)}
+                          className="px-8 py-2.5 bg-green-600 text-white font-bold text-[13px] rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-600/20"
+                        >
+                          Confirm Return
+                        </button>
+                      )}
+                      {request.payment_status === "held_in_escrow" && (
+                        <button 
+                          onClick={() => handleReportIssue(request.rental_id)}
+                          className="px-8 py-2.5 bg-red-50 text-red-600 font-bold text-[13px] rounded-xl hover:bg-red-100 transition-all"
+                        >
+                          Report Issue
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
