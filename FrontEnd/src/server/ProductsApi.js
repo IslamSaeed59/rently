@@ -208,9 +208,16 @@ export const getAllRequests = async () => {
   }
 };
 
-export const reportIssue = async (rentalId, reason) => {
+export const reportIssue = async (rentalId, reason, images = []) => {
   try {
-    const response = await ProductsApi.post("payments/report-issue", { rental_id: rentalId, reason });
+    const formData = new FormData();
+    formData.append("rental_id", rentalId);
+    formData.append("reason", reason);
+    images.forEach((img) => formData.append("issue_images", img));
+
+    const response = await ProductsApi.post("payments/report-issue", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;

@@ -334,7 +334,7 @@ const Wallet = {
   },
 
   // Seller reports an issue: Release Rental Fee but LOCK Security Deposit
-  reportRentalIssue: async (sellerId, rentalId, reason) => {
+  reportRentalIssue: async (sellerId, rentalId, reason, imagePaths = []) => {
     const [rentals] = await pool.query(
       `SELECT r.*, rr.seller_id 
        FROM rentals r 
@@ -359,9 +359,6 @@ const Wallet = {
     const systemWallet = await Wallet.getPlatformWallet();
 
     // 1. Release ONLY the Rental Fee (minus commission) to Seller
-    // Note: We subtract BOTH Fee + Deposit from Pending, but add ONLY Fee to Available.
-    // The Deposit remains "Removed from Pending" but NOT YET "Added to Available" for anyone.
-    // Effectively, the deposit is held by the system until resolution.
     await pool.query(
       "UPDATE wallets SET pending_balance = pending_balance - ?, available_balance = available_balance + ? WHERE id = ?", 
       [totalRentalFee + depositAmount, amountToSeller, sellerWallet.id]
@@ -383,10 +380,15 @@ const Wallet = {
       [systemWallet.id, commissionAmount, rentalId]
     );
 
-    // 4. Update Rental Table: Mark as disputed and store the locked deposit amount
+    // 4. Build full dispute reason: include images JSON if present
+    const fullReason = imagePaths.length > 0
+      ? `${reason}\n__IMAGES__:${JSON.stringify(imagePaths)}`
+      : reason;
+
+    // 5. Update Rental Table: Mark as disputed and store the locked deposit amount
     await pool.query(
       "UPDATE rentals SET dispute_status = 'pending_resolution', dispute_reason = ?, dispute_opened_at = CURRENT_TIMESTAMP, payment_status = 'disputed', commission_amount = ? WHERE id = ?",
-      [reason, commissionAmount, rentalId]
+      [fullReason, commissionAmount, rentalId]
     );
 
     return true;
@@ -428,10 +430,11 @@ const Wallet = {
       );
     }
 
-    // 2. Mark as resolved
+    // 2. Mark as resolved — embed amounts in notes for future display
+    const resolutionNote = `\nAdmin Resolution: ${adminNotes}\n__SELLER_AWARD__:${amountToSeller}\n__BUYER_REFUND__:${amountToBuyer}`;
     await pool.query(
       "UPDATE rentals SET dispute_status = 'resolved', notes = CONCAT(COALESCE(notes,''), ?), payment_status = 'released_to_lessor' WHERE id = ?",
-      [`\nAdmin Resolution: ${adminNotes}`, rentalId]
+      [resolutionNote, rentalId]
     );
 
     return true;

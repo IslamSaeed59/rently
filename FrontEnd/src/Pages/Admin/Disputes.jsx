@@ -15,6 +15,46 @@ import {
 import { getAllRequests, resolveDispute } from "../../server/ProductsApi";
 import Swal from "sweetalert2";
 
+// ── Helper: split raw dispute_reason into { text, images[] } ──────────────
+const parseDisputeReason = (raw) => {
+  if (!raw) return { text: "No reason provided.", images: [] };
+  const marker = "\n__IMAGES__:";
+  const idx = raw.indexOf(marker);
+  if (idx === -1) return { text: raw, images: [] };
+  const text = raw.slice(0, idx).trim();
+  try {
+    const images = JSON.parse(raw.slice(idx + marker.length).trim());
+    return { text, images: Array.isArray(images) ? images : [] };
+  } catch {
+    return { text, images: [] };
+  }
+};
+
+// ── Helper: parse notes field → { adminNote, sellerAward, buyerRefund } ───
+const parseResolutionNotes = (notes) => {
+  if (!notes) return { adminNote: "Resolved by admin", sellerAward: null, buyerRefund: null };
+  const lines = notes.split("\n");
+  let adminNote = "";
+  let sellerAward = null;
+  let buyerRefund = null;
+  lines.forEach((line) => {
+    if (line.startsWith("Admin Resolution:")) {
+      adminNote = line.replace("Admin Resolution:", "").trim();
+    } else if (line.startsWith("__SELLER_AWARD__:")) {
+      sellerAward = parseFloat(line.replace("__SELLER_AWARD__:", "").trim());
+    } else if (line.startsWith("__BUYER_REFUND__:")) {
+      buyerRefund = parseFloat(line.replace("__BUYER_REFUND__:", "").trim());
+    }
+  });
+  return {
+    adminNote: adminNote || "Resolved by admin",
+    sellerAward,
+    buyerRefund,
+  };
+};
+
+const BACKEND = "http://localhost:9000";
+
 const AdminDisputes = () => {
   const [allDisputes, setAllDisputes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -247,35 +287,76 @@ const AdminDisputes = () => {
                     </div>
                   </div>
 
-                  <div className={`p-5 rounded-2xl border transition-colors ${
-                    activeTab === "active" 
-                      ? "bg-red-50/30 border-red-100/50 group-hover:bg-red-50/50" 
-                      : "bg-emerald-50/30 border-emerald-100/50"
-                  }`}>
-                    <p className={`text-[11px] font-black uppercase mb-2 flex items-center gap-2 ${
-                      activeTab === "active" ? "text-red-500" : "text-emerald-600"
-                    }`}>
-                      <Info size={14} />
-                      {activeTab === "active" ? "Reason for Dispute / سبب الخلاف" : "Resolution Outcome / نتيجة الحل"}
-                    </p>
-                    <p className={`text-sm font-medium leading-relaxed italic ${
-                      activeTab === "active" ? "text-red-900" : "text-emerald-900"
-                    }`}>
-                      "{activeTab === "active" ? dispute.dispute_reason : dispute.notes?.split('\n').pop() || "Resolved by admin"}"
-                    </p>
-                    {activeTab === "history" && (
-                      <div className="mt-4 pt-4 border-t border-emerald-100/50 flex gap-6">
-                        <div>
-                          <p className="text-[9px] font-bold text-gray-400 uppercase">To Seller</p>
-                          <p className="text-sm font-black text-emerald-700">{dispute.seller_award || 0} EGP</p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] font-bold text-gray-400 uppercase">To Buyer</p>
-                          <p className="text-sm font-black text-emerald-700">{dispute.buyer_refund || 0} EGP</p>
-                        </div>
+                  {/* ── Dispute Reason + Evidence Images ── */}
+                  {(() => {
+                    const { text, images } = parseDisputeReason(dispute.dispute_reason);
+                    const { adminNote, sellerAward, buyerRefund } = parseResolutionNotes(dispute.notes);
+                    return (
+                      <div className={`p-5 rounded-2xl border transition-colors ${
+                        activeTab === "active"
+                          ? "bg-red-50/30 border-red-100/50 group-hover:bg-red-50/50"
+                          : "bg-emerald-50/30 border-emerald-100/50"
+                      }`}>
+                        <p className={`text-[11px] font-black uppercase mb-2 flex items-center gap-2 ${
+                          activeTab === "active" ? "text-red-500" : "text-emerald-600"
+                        }`}>
+                          <Info size={14} />
+                          {activeTab === "active" ? "Reason for Dispute / سبب الخلاف" : "Resolution Outcome / نتيجة الحل"}
+                        </p>
+
+                        {/* Reason / Note text */}
+                        <p className={`text-sm font-medium leading-relaxed ${
+                          activeTab === "active" ? "text-red-900" : "text-emerald-900"
+                        }`}>
+                          &ldquo;{activeTab === "active" ? text : adminNote}&rdquo;
+                        </p>
+
+                        {/* Evidence images (only for active disputes) */}
+                        {activeTab === "active" && images.length > 0 && (
+                          <div className="mt-3">
+                            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-2">📷 Evidence Photos ({images.length})</p>
+                            <div className="grid grid-cols-4 gap-2">
+                              {images.map((src, i) => (
+                                <a
+                                  key={i}
+                                  href={`${BACKEND}${src}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block aspect-square rounded-xl overflow-hidden border-2 border-red-100 hover:border-red-400 transition-all group/img shadow-sm"
+                                >
+                                  <img
+                                    src={`${BACKEND}${src}`}
+                                    alt={`evidence-${i + 1}`}
+                                    className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
+                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                  />
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* History resolution amounts — parsed from notes */}
+                        {activeTab === "history" && (
+                          <div className="mt-4 pt-4 border-t border-emerald-100/50 flex gap-6">
+                            <div>
+                              <p className="text-[9px] font-bold text-gray-400 uppercase">To Seller</p>
+                              <p className="text-sm font-black text-emerald-700">
+                                {sellerAward !== null ? `${sellerAward} EGP` : "—"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-bold text-gray-400 uppercase">To Buyer</p>
+                              <p className="text-sm font-black text-emerald-700">
+                                {buyerRefund !== null ? `${buyerRefund} EGP` : "—"}
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    );
+                  })()}
+
                 </div>
               ))}
             </div>

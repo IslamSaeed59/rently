@@ -36,7 +36,7 @@ const RentalRequest = {
       SELECT rr.*, p.name as product_name, pi.image_url as primary_image,
              CONCAT(b.Firstname, ' ', b.LastName) as buyer_name,
              CONCAT(s.Firstname, ' ', s.LastName) as seller_name,
-             r.payment_status, r.id as rental_id, r.dispute_status, r.dispute_reason, r.deposit_paid
+             r.payment_status, r.id as rental_id, r.dispute_status, r.dispute_reason, r.deposit_paid, r.notes
       FROM rental_requests rr
       JOIN products p ON rr.product_id = p.id
       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = TRUE

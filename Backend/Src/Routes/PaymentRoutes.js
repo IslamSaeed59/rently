@@ -3,13 +3,14 @@ const MockPaymentController = require("../Controllers/MockPaymentController");
 const WalletController = require("../Controllers/WalletController");
 const AdminPayoutController = require("../Controllers/AdminPayoutController");
 const authMiddleware = require("../middleware/authMiddleware");
+const issueUpload = require("../middleware/issueUpload");
 
 const router = express.Router();
 
 // 1. Mock Payment Routes (Buyer)
 router.post("/pay", authMiddleware, MockPaymentController.payForRental);
 router.post("/confirm-return", authMiddleware, MockPaymentController.confirmReturn);
-router.post("/report-issue", authMiddleware, MockPaymentController.reportRentalIssue);
+router.post("/report-issue", authMiddleware, issueUpload.array("issue_images", 4), MockPaymentController.reportRentalIssue);
 router.post("/resolve-dispute", authMiddleware, MockPaymentController.resolveRentalDispute);
 
 // 2. Wallet Routes (Lessor/User)

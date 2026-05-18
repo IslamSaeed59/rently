@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 import {
   Star,
   Calendar,
@@ -74,15 +75,210 @@ const BookingRequests = () => {
   };
 
   const handleReportIssue = async (rentalId) => {
-    const reason = window.prompt("Please describe the issue with the returned item:");
-    if (!reason) return;
+    // --- Build the SweetAlert2 HTML content ---
+    const { value: formResult, isDismissed } = await Swal.fire({
+      title: "<span style='font-size:20px;font-weight:800;color:#050F2A'>Report an Issue</span>",
+      html: `
+        <style>
+          .swal2-issue-body { text-align: left; }
+          .swal2-issue-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+          }
+          #issue-reason {
+            width: 100%;
+            min-height: 110px;
+            padding: 12px 14px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #050F2A;
+            resize: vertical;
+            outline: none;
+            font-family: inherit;
+            transition: border-color .2s;
+            box-sizing: border-box;
+          }
+          #issue-reason:focus { border-color: #050F2A; }
+          .swal2-upload-zone {
+            margin-top: 16px;
+            border: 2px dashed #e5e7eb;
+            border-radius: 14px;
+            padding: 18px 14px;
+            cursor: pointer;
+            transition: border-color .2s, background .2s;
+            text-align: center;
+          }
+          .swal2-upload-zone:hover { border-color: #050F2A; background: #f9fafb; }
+          .swal2-upload-icon { font-size: 28px; margin-bottom: 6px; }
+          .swal2-upload-text { font-size: 13px; color: #9ca3af; font-weight: 500; }
+          .swal2-upload-text strong { color: #050F2A; }
+          #issue-images-input { display: none; }
+          .swal2-img-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 14px;
+          }
+          .swal2-img-thumb {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            background: #f3f4f6;
+          }
+          .swal2-img-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          .swal2-img-thumb .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 20px;
+            height: 20px;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+          }
+          .swal2-limit-note {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #9ca3af;
+            text-align: right;
+          }
+        </style>
+        <div class="swal2-issue-body">
+          <label class="swal2-issue-label">Describe the issue *</label>
+          <textarea id="issue-reason" placeholder="e.g. Item returned with scratches on the body, missing strap..."></textarea>
+
+          <div class="swal2-upload-zone" id="upload-zone">
+            <div class="swal2-upload-icon">📷</div>
+            <p class="swal2-upload-text"><strong>Click to add photos</strong> or drag &amp; drop</p>
+            <p class="swal2-upload-text">PNG, JPG, WEBP &mdash; max 4 photos, 5 MB each</p>
+            <input type="file" id="issue-images-input" accept="image/*" multiple />
+          </div>
+
+          <div class="swal2-img-preview-grid" id="img-preview-grid"></div>
+          <p class="swal2-limit-note" id="img-count-note">0 / 4 photos</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Submit Report",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#050F2A",
+      cancelButtonColor: "#6b7280",
+      width: 540,
+      customClass: { popup: "swal2-issue-popup" },
+      focusConfirm: false,
+      didOpen: () => {
+        const zone = document.getElementById("upload-zone");
+        const input = document.getElementById("issue-images-input");
+        const grid = document.getElementById("img-preview-grid");
+        const note = document.getElementById("img-count-note");
+        let files = [];
+
+        const renderPreviews = () => {
+          grid.innerHTML = "";
+          note.textContent = `${files.length} / 4 photos`;
+          files.forEach((file, idx) => {
+            const url = URL.createObjectURL(file);
+            const thumb = document.createElement("div");
+            thumb.className = "swal2-img-thumb";
+            thumb.innerHTML = `
+              <img src="${url}" alt="preview" />
+              <button class="remove-btn" data-idx="${idx}">&times;</button>
+            `;
+            thumb.querySelector(".remove-btn").addEventListener("click", (e) => {
+              e.stopPropagation();
+              files.splice(idx, 1);
+              // Store updated list on zone for preConfirm access
+              zone._files = files;
+              renderPreviews();
+            });
+            grid.appendChild(thumb);
+          });
+          zone._files = files;
+        };
+
+        zone.addEventListener("click", () => input.click());
+
+        zone.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          zone.style.borderColor = "#050F2A";
+          zone.style.background = "#f9fafb";
+        });
+        zone.addEventListener("dragleave", () => {
+          zone.style.borderColor = "";
+          zone.style.background = "";
+        });
+        zone.addEventListener("drop", (e) => {
+          e.preventDefault();
+          zone.style.borderColor = "";
+          zone.style.background = "";
+          const dropped = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+          const remaining = 4 - files.length;
+          files = [...files, ...dropped.slice(0, remaining)];
+          renderPreviews();
+        });
+
+        input.addEventListener("change", () => {
+          const selected = Array.from(input.files).filter(f => f.type.startsWith("image/"));
+          const remaining = 4 - files.length;
+          files = [...files, ...selected.slice(0, remaining)];
+          input.value = "";
+          renderPreviews();
+        });
+      },
+      preConfirm: () => {
+        const reason = document.getElementById("issue-reason")?.value?.trim();
+        const zone = document.getElementById("upload-zone");
+        const files = zone?._files || [];
+        if (!reason) {
+          Swal.showValidationMessage("⚠️ Please describe the issue before submitting.");
+          return false;
+        }
+        return { reason, files };
+      },
+    });
+
+    if (isDismissed || !formResult) return;
+
+    const { reason, files } = formResult;
 
     try {
-      await reportIssue(rentalId, reason);
-      toast.warning("Issue reported. Rental fee released, deposit held for admin review.");
+      await reportIssue(rentalId, reason, files);
+      Swal.fire({
+        icon: "success",
+        title: "<span style='font-size:18px;font-weight:800;color:#050F2A'>Issue Reported!</span>",
+        html: "<p style='font-size:14px;color:#6b7280'>Your rental fee has been released. The security deposit is held pending admin review.</p>",
+        confirmButtonColor: "#050F2A",
+        confirmButtonText: "Got it",
+        width: 440,
+      });
       fetchRequests();
     } catch (error) {
-      toast.error(error.message || "Failed to report issue");
+      Swal.fire({
+        icon: "error",
+        title: "<span style='font-size:18px;font-weight:800;color:#dc2626'>Failed to Report</span>",
+        html: `<p style='font-size:14px;color:#6b7280'>${error.message || "Something went wrong. Please try again."}</p>`,
+        confirmButtonColor: "#dc2626",
+        confirmButtonText: "Close",
+        width: 440,
+      });
     }
   };
 

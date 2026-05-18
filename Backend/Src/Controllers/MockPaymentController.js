@@ -97,7 +97,12 @@ const MockPaymentController = {
         return res.status(403).json({ message: "Only the seller can report an issue." });
       }
 
-      await Wallet.reportRentalIssue(userId, rental_id, reason);
+      // Collect uploaded image paths (up to 4)
+      const imagePaths = (req.files || []).map(
+        (f) => `/uploads/issues/${f.filename}`
+      );
+
+      await Wallet.reportRentalIssue(userId, rental_id, reason, imagePaths);
 
       res.status(200).json({ 
         message: "Issue reported. Your rental fee has been released to your wallet, and the security deposit is held for admin review." 
