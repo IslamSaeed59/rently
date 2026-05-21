@@ -35,7 +35,7 @@ CREATE TABLE `booking_blackout` (
   KEY `idx_product_time` (`product_id`,`start_datetime`,`end_datetime`),
   CONSTRAINT `booking_blackout_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
   CONSTRAINT `booking_blackout_ibfk_2` FOREIGN KEY (`rental_id`) REFERENCES `rentals` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -44,6 +44,7 @@ CREATE TABLE `booking_blackout` (
 
 LOCK TABLES `booking_blackout` WRITE;
 /*!40000 ALTER TABLE `booking_blackout` DISABLE KEYS */;
+INSERT INTO `booking_blackout` VALUES (38,13,'2026-05-18 10:00:00','2026-05-18 17:00:00',34,'active','2026-05-18 16:37:25'),(39,21,'2026-05-18 21:00:00','2026-05-18 22:00:00',35,'active','2026-05-18 18:00:35'),(40,21,'2026-05-18 22:30:00','2026-05-18 23:00:00',36,'active','2026-05-18 18:15:25');
 /*!40000 ALTER TABLE `booking_blackout` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -198,7 +199,7 @@ CREATE TABLE `notifications` (
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=63 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -207,7 +208,7 @@ CREATE TABLE `notifications` (
 
 LOCK TABLES `notifications` WRITE;
 /*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
-INSERT INTO `notifications` VALUES (10,13,14,'rental_request','New rental request for your product: قاعدة ماوس احترافية 70 × 30 سم',23,1,'2026-05-08 18:38:25'),(12,13,14,'rental_request','New rental request for your product: لابتوب من لينوفو، بمعالج انتل، شاشة 15.6 إنش، وذاكرة رام 16 جيجابايت',24,1,'2026-05-08 18:47:58'),(15,13,14,'request_accepted','Your rental request for Mobile has been accepted',25,1,'2026-05-08 18:53:45'),(17,13,14,'request_accepted','Your rental request for Mobile has been accepted',26,1,'2026-05-08 18:58:40'),(19,13,14,'request_accepted','Your rental request for Mobile has been accepted',27,1,'2026-05-08 19:02:53'),(21,19,14,'request_accepted','Your rental request for Mobile has been accepted',28,1,'2026-05-08 19:07:29'),(23,19,14,'request_accepted','Your rental request for Mobile has been accepted',29,1,'2026-05-08 19:39:13'),(25,19,14,'request_accepted','Your rental request for Mobile has been accepted',30,1,'2026-05-08 19:45:43'),(27,19,14,'request_accepted','Your rental request for Mobile has been accepted',31,1,'2026-05-08 19:50:43'),(29,19,14,'request_accepted','Your rental request for Mobile has been accepted',32,1,'2026-05-08 19:57:59'),(31,19,14,'request_accepted','Your rental request for Mobile has been accepted',33,1,'2026-05-08 20:00:12'),(33,19,14,'request_accepted','Your rental request for Mobile has been accepted',34,1,'2026-05-08 20:04:54'),(35,13,14,'request_accepted','Your rental request for Mobile has been accepted',35,1,'2026-05-09 06:22:46'),(37,13,14,'request_accepted','Your rental request for Mobile has been accepted',36,1,'2026-05-09 07:34:05'),(39,13,14,'request_accepted','Your rental request for Mobile has been accepted',37,1,'2026-05-09 07:36:34'),(41,13,14,'request_accepted','Your rental request for Mobile has been accepted',38,1,'2026-05-09 07:41:27'),(43,19,14,'request_accepted','Your rental request for Mobile has been accepted',39,1,'2026-05-09 07:47:37'),(45,19,14,'request_accepted','Your rental request for Mobile has been accepted',40,1,'2026-05-09 08:18:07'),(47,19,14,'request_accepted','Your rental request for Mobile has been accepted',41,1,'2026-05-09 08:56:56'),(49,19,14,'request_accepted','Your rental request for Mobile has been accepted',42,1,'2026-05-09 09:12:49'),(51,19,14,'request_accepted','Your rental request for Mobile has been accepted',43,0,'2026-05-09 09:32:45'),(53,13,14,'request_accepted','Your rental request for Mobile has been accepted',44,1,'2026-05-09 11:07:18'),(55,13,14,'request_accepted','Your rental request for Mobile has been accepted',45,1,'2026-05-09 11:12:18'),(56,13,14,'request_accepted','Your rental request for Mobile has been accepted',45,1,'2026-05-09 11:12:21');
+INSERT INTO `notifications` VALUES (10,13,14,'rental_request','New rental request for your product: قاعدة ماوس احترافية 70 × 30 سم',23,1,'2026-05-08 18:38:25'),(12,13,14,'rental_request','New rental request for your product: لابتوب من لينوفو، بمعالج انتل، شاشة 15.6 إنش، وذاكرة رام 16 جيجابايت',24,1,'2026-05-08 18:47:58'),(15,13,14,'request_accepted','Your rental request for Mobile has been accepted',25,1,'2026-05-08 18:53:45'),(17,13,14,'request_accepted','Your rental request for Mobile has been accepted',26,1,'2026-05-08 18:58:40'),(19,13,14,'request_accepted','Your rental request for Mobile has been accepted',27,1,'2026-05-08 19:02:53'),(21,19,14,'request_accepted','Your rental request for Mobile has been accepted',28,1,'2026-05-08 19:07:29'),(23,19,14,'request_accepted','Your rental request for Mobile has been accepted',29,1,'2026-05-08 19:39:13'),(25,19,14,'request_accepted','Your rental request for Mobile has been accepted',30,1,'2026-05-08 19:45:43'),(27,19,14,'request_accepted','Your rental request for Mobile has been accepted',31,1,'2026-05-08 19:50:43'),(29,19,14,'request_accepted','Your rental request for Mobile has been accepted',32,1,'2026-05-08 19:57:59'),(31,19,14,'request_accepted','Your rental request for Mobile has been accepted',33,1,'2026-05-08 20:00:12'),(33,19,14,'request_accepted','Your rental request for Mobile has been accepted',34,1,'2026-05-08 20:04:54'),(35,13,14,'request_accepted','Your rental request for Mobile has been accepted',35,1,'2026-05-09 06:22:46'),(37,13,14,'request_accepted','Your rental request for Mobile has been accepted',36,1,'2026-05-09 07:34:05'),(39,13,14,'request_accepted','Your rental request for Mobile has been accepted',37,1,'2026-05-09 07:36:34'),(41,13,14,'request_accepted','Your rental request for Mobile has been accepted',38,1,'2026-05-09 07:41:27'),(43,19,14,'request_accepted','Your rental request for Mobile has been accepted',39,1,'2026-05-09 07:47:37'),(45,19,14,'request_accepted','Your rental request for Mobile has been accepted',40,1,'2026-05-09 08:18:07'),(47,19,14,'request_accepted','Your rental request for Mobile has been accepted',41,1,'2026-05-09 08:56:56'),(49,19,14,'request_accepted','Your rental request for Mobile has been accepted',42,1,'2026-05-09 09:12:49'),(51,19,14,'request_accepted','Your rental request for Mobile has been accepted',43,1,'2026-05-09 09:32:45'),(53,13,14,'request_accepted','Your rental request for Mobile has been accepted',44,1,'2026-05-09 11:07:18'),(55,13,14,'request_accepted','Your rental request for Mobile has been accepted',45,1,'2026-05-09 11:12:18'),(56,13,14,'request_accepted','Your rental request for Mobile has been accepted',45,1,'2026-05-09 11:12:21'),(57,13,19,'rental_request','New rental request for your product: لابتوب من لينوفو، بمعالج انتل، شاشة 15.6 إنش، وذاكرة رام 16 جيجابايت',46,1,'2026-05-18 16:37:03'),(58,19,13,'request_accepted','Your rental request for لابتوب من لينوفو، بمعالج انتل، شاشة 15.6 إنش، وذاكرة رام 16 جيجابايت has been accepted',46,1,'2026-05-18 16:37:25'),(59,19,13,'rental_request','New rental request for your product: BOX',47,1,'2026-05-18 18:00:30'),(60,13,19,'request_accepted','Your rental request for BOX has been accepted',47,1,'2026-05-18 18:00:35'),(61,19,13,'rental_request','New rental request for your product: BOX',48,1,'2026-05-18 18:15:18'),(62,13,19,'request_accepted','Your rental request for BOX has been accepted',48,1,'2026-05-18 18:15:25');
 /*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -282,7 +283,7 @@ CREATE TABLE `product_images` (
   PRIMARY KEY (`id`),
   KEY `product_id` (`product_id`),
   CONSTRAINT `product_images_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -291,7 +292,7 @@ CREATE TABLE `product_images` (
 
 LOCK TABLES `product_images` WRITE;
 /*!40000 ALTER TABLE `product_images` DISABLE KEYS */;
-INSERT INTO `product_images` VALUES (34,14,'/uploads/Laptops/1777587955409-790968685.webp',1,0),(35,15,'/uploads/Gaming/1777588104614-22020539.jpg',1,0),(36,15,'/uploads/Gaming/1777588104614-661003518.jpg',0,1),(37,16,'/uploads/Gaming/1777588156080-833271083.jpg',1,0),(38,16,'/uploads/Gaming/1777588156081-883266642.jpg',0,1),(39,16,'/uploads/Gaming/1777588156081-111129542.jpg',0,2),(40,17,'/uploads/Gaming/1777588223281-818143270.jpg',1,0),(41,17,'/uploads/Gaming/1777588223282-252508825.jpg',0,1),(42,18,'/uploads/Web%20Cam/1777588423765-854902660.jpg',1,0),(43,18,'/uploads/Web%20Cam/1777588423765-399101852.jpg',0,1),(44,19,'/uploads/DJ%20Light/1777588781888-479425046.jpg',1,0),(45,19,'/uploads/DJ%20Light/1777588781889-224106091.jpg',0,1),(46,19,'/uploads/DJ%20Light/1777588781891-60834920.jpg',0,2),(57,13,'http://localhost:9000/uploads/Laptops/1777587901512-576663336.webp',1,0),(58,13,'http://localhost:9000/uploads/Laptops/1777587901513-391747201.webp',0,1);
+INSERT INTO `product_images` VALUES (34,14,'/uploads/Laptops/1777587955409-790968685.webp',1,0),(35,15,'/uploads/Gaming/1777588104614-22020539.jpg',1,0),(36,15,'/uploads/Gaming/1777588104614-661003518.jpg',0,1),(37,16,'/uploads/Gaming/1777588156080-833271083.jpg',1,0),(38,16,'/uploads/Gaming/1777588156081-883266642.jpg',0,1),(39,16,'/uploads/Gaming/1777588156081-111129542.jpg',0,2),(40,17,'/uploads/Gaming/1777588223281-818143270.jpg',1,0),(41,17,'/uploads/Gaming/1777588223282-252508825.jpg',0,1),(42,18,'/uploads/Web%20Cam/1777588423765-854902660.jpg',1,0),(43,18,'/uploads/Web%20Cam/1777588423765-399101852.jpg',0,1),(44,19,'/uploads/DJ%20Light/1777588781888-479425046.jpg',1,0),(45,19,'/uploads/DJ%20Light/1777588781889-224106091.jpg',0,1),(46,19,'/uploads/DJ%20Light/1777588781891-60834920.jpg',0,2),(57,13,'http://localhost:9000/uploads/Laptops/1777587901512-576663336.webp',1,0),(58,13,'http://localhost:9000/uploads/Laptops/1777587901513-391747201.webp',0,1),(61,21,'/uploads/Laptops/1779127190489-269457256.png',1,0);
 /*!40000 ALTER TABLE `product_images` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -314,7 +315,7 @@ CREATE TABLE `product_reviews` (
   KEY `user_id` (`user_id`),
   CONSTRAINT `product_reviews_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   CONSTRAINT `product_reviews_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -323,7 +324,6 @@ CREATE TABLE `product_reviews` (
 
 LOCK TABLES `product_reviews` WRITE;
 /*!40000 ALTER TABLE `product_reviews` DISABLE KEYS */;
-INSERT INTO `product_reviews` VALUES (3,17,13,5,'شخص محترم جدا ','2026-05-09 12:04:13');
 /*!40000 ALTER TABLE `product_reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -357,7 +357,7 @@ CREATE TABLE `products` (
   KEY `category_id` (`category_id`),
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`seller_id`) REFERENCES `users` (`id`),
   CONSTRAINT `products_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -366,7 +366,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (13,13,6,'لابتوب من لينوفو، بمعالج انتل، شاشة 15.6 إنش، وذاكرة رام 16 جيجابايت','انتل كور i5-12450HX، مع 8 أنوية (4 بي + 4 اي) / 12 خيطًا، بتردد يصل إلى 4.4 جيجاهرتز لأنوية بي، و3.1 جيجاهرتز لأنوية اي، وذاكرة تخزين مؤقت 12 ميجابايت.\r\nبطاقة رسومات: انفيديا جي فورس ار تي اكس 2050 ذاكرة GDDR6 سعة 4 جيجابايت، أقصى تردد 1575 ميجاهرتز، حد طاقة وحدة معالجة الرسومات 65 وات\r\nالذاكرة: 1× ذاكرة DDR5-4800 SO-DIMM سعة 8 جيجابايت\r\nسعة التخزين: ذاكرة SSD M.2 2242 سعة 512 جيجابايت، منفذ الملحقات الإضافية السريع وذاكرة مستديمة 4.0×4\r\nالشاشة: 15.6 بوصة FHD (1920×1080) IPS 300 وحدة مضيئة في البيكسل مضادة للتوهج، 100% ار جي بي، 144 هرتز.',NULL,100.00,NULL,NULL,50.00,'الإسكندرية العامرية',1,1,'2026-04-30 22:25:01',NULL,NULL,0),(14,13,6,'لابتوب ألعاب ال او كيو اسينشال 15IAX9E','جودة العرض: توفر شاشة ال او كيو صوراً واضحة وألواناً زاهية لتجربة مشاهدة غامرة.\r\nوظائف ذكية: يتميز بخيارات اتصال ذكية وإمكانيات تكامل مع الأجهزة الذكية لتجربة مستخدم محسنة.\r\nالتصميم: تصميم جمالي أنيق وعصري بجودة تصميم احترافية مناسب لكل من إعدادات العمل والترفيه.\r\nالتوافق: يضمن الاتصال العالمي تكاملاً سلسلاً مع أجهزة وأنظمة تشغيل متعددة.\r\nموثوقية العلامة التجارية: تم تصنيعه بواسطة ال او كيو، والمعروفة بتقديم حلول موثوقة للحوسبة والعرض.',100.00,NULL,NULL,NULL,10.00,'الإسكندرية العامرية',1,1,'2026-04-30 22:25:55',0,0.00,1),(15,13,7,'لوحة مفاتيح ميكانيكية للألعاب F3001، ','لوحة مفاتيح ميكانيكية للألعاب F3001، بإضاءة خلفية ار جي بي، مفاتيح خطية مشحمة مسبقًا، متوافقة مع الكمبيوتر، PlayStation، وإكس بوكس',99.99,NULL,NULL,NULL,0.00,'الإسكندرية العامرية',1,1,'2026-04-30 22:28:24',0,0.00,1),(16,13,7,'ماوس العاب ريبر مضيء 220','ماوس العاب ريبر مضيء 220 سلكي وغير قابل للانزلاق مع مفاتيح اومرون كليك ومستشعر افاجو 4800 نقطة في البوصة و6 ازرار قابلة للبرمجة من يوراج',NULL,250.00,NULL,NULL,10.00,'الإسكندرية العامرية',1,1,'2026-04-30 22:29:16',0,0.00,0),(17,13,7,'قاعدة ماوس احترافية 70 × 30 سم','قاعدة ماوس احترافية 70 × 30 سم بقاعدة غير قابلة للانزلاق وسطح املس مثالية للالعاب والاستخدام المكتبي. تضمن التحكم الدقيق والثبات والمتانة طويلة الامد\r\n',NULL,70.00,NULL,NULL,10.00,'الإسكندرية العامرية',1,1,'2026-04-30 22:30:23',0,0.00,0),(18,13,8,'كاميرا ويب FHD Q5 بدقة 1080 بكسل/','كاميرا ويب FHD Q5 بدقة 1080 بكسل/30 إطار في الثانية 2 ميجابكسل مع ميكروفون مزدوج بتقنية خفض الضوضاء والتوصيل والتشغيل للبث المباشر لمؤتمرات الفيديو لأجهزة اللاب توب وأندرويد تي في بوكس أندرويد، أسود',NULL,150.00,NULL,NULL,10.00,'العاشر من رمضان, الشرقية',1,1,'2026-04-30 22:33:43',0,0.00,1),(19,13,9,'مصباح مسرح ليد 54 × 3 وات','مصباح مسرح ليد 54 × 3 وات من زوميوزي، مصابيح دي ام اكس 512 للتحكم في المسرح ودي جيه بإضاءة ار جي بي تعمل بالصوت مع 4 أوضاع عمل لحفلات الزفاف وعيد الميلاد...\r\n',NULL,500.00,NULL,NULL,100.00,'العاشر من رمضان, الشرقية',1,1,'2026-04-30 22:39:41',0,0.00,0);
+INSERT INTO `products` VALUES (13,13,6,'لابتوب من لينوفو، بمعالج انتل، شاشة 15.6 إنش، وذاكرة رام 16 جيجابايت','انتل كور i5-12450HX، مع 8 أنوية (4 بي + 4 اي) / 12 خيطًا، بتردد يصل إلى 4.4 جيجاهرتز لأنوية بي، و3.1 جيجاهرتز لأنوية اي، وذاكرة تخزين مؤقت 12 ميجابايت.\r\nبطاقة رسومات: انفيديا جي فورس ار تي اكس 2050 ذاكرة GDDR6 سعة 4 جيجابايت، أقصى تردد 1575 ميجاهرتز، حد طاقة وحدة معالجة الرسومات 65 وات\r\nالذاكرة: 1× ذاكرة DDR5-4800 SO-DIMM سعة 8 جيجابايت\r\nسعة التخزين: ذاكرة SSD M.2 2242 سعة 512 جيجابايت، منفذ الملحقات الإضافية السريع وذاكرة مستديمة 4.0×4\r\nالشاشة: 15.6 بوصة FHD (1920×1080) IPS 300 وحدة مضيئة في البيكسل مضادة للتوهج، 100% ار جي بي، 144 هرتز.',NULL,100.00,NULL,NULL,50.00,'الإسكندرية العامرية',1,1,'2026-04-30 22:25:01',NULL,NULL,0),(14,13,6,'لابتوب ألعاب ال او كيو اسينشال 15IAX9E','جودة العرض: توفر شاشة ال او كيو صوراً واضحة وألواناً زاهية لتجربة مشاهدة غامرة.\r\nوظائف ذكية: يتميز بخيارات اتصال ذكية وإمكانيات تكامل مع الأجهزة الذكية لتجربة مستخدم محسنة.\r\nالتصميم: تصميم جمالي أنيق وعصري بجودة تصميم احترافية مناسب لكل من إعدادات العمل والترفيه.\r\nالتوافق: يضمن الاتصال العالمي تكاملاً سلسلاً مع أجهزة وأنظمة تشغيل متعددة.\r\nموثوقية العلامة التجارية: تم تصنيعه بواسطة ال او كيو، والمعروفة بتقديم حلول موثوقة للحوسبة والعرض.',100.00,NULL,NULL,NULL,10.00,'الإسكندرية العامرية',1,1,'2026-04-30 22:25:55',0,0.00,1),(15,13,7,'لوحة مفاتيح ميكانيكية للألعاب F3001، ','لوحة مفاتيح ميكانيكية للألعاب F3001، بإضاءة خلفية ار جي بي، مفاتيح خطية مشحمة مسبقًا، متوافقة مع الكمبيوتر، PlayStation، وإكس بوكس',99.99,NULL,NULL,NULL,0.00,'الإسكندرية العامرية',1,1,'2026-04-30 22:28:24',0,0.00,1),(16,13,7,'ماوس العاب ريبر مضيء 220','ماوس العاب ريبر مضيء 220 سلكي وغير قابل للانزلاق مع مفاتيح اومرون كليك ومستشعر افاجو 4800 نقطة في البوصة و6 ازرار قابلة للبرمجة من يوراج',NULL,250.00,NULL,NULL,10.00,'الإسكندرية العامرية',1,1,'2026-04-30 22:29:16',0,0.00,0),(17,13,7,'قاعدة ماوس احترافية 70 × 30 سم','قاعدة ماوس احترافية 70 × 30 سم بقاعدة غير قابلة للانزلاق وسطح املس مثالية للالعاب والاستخدام المكتبي. تضمن التحكم الدقيق والثبات والمتانة طويلة الامد\r\n',NULL,70.00,NULL,NULL,10.00,'الإسكندرية العامرية',1,1,'2026-04-30 22:30:23',0,0.00,0),(18,13,8,'كاميرا ويب FHD Q5 بدقة 1080 بكسل/','كاميرا ويب FHD Q5 بدقة 1080 بكسل/30 إطار في الثانية 2 ميجابكسل مع ميكروفون مزدوج بتقنية خفض الضوضاء والتوصيل والتشغيل للبث المباشر لمؤتمرات الفيديو لأجهزة اللاب توب وأندرويد تي في بوكس أندرويد، أسود',NULL,150.00,NULL,NULL,10.00,'العاشر من رمضان, الشرقية',1,1,'2026-04-30 22:33:43',0,0.00,1),(19,13,9,'مصباح مسرح ليد 54 × 3 وات','مصباح مسرح ليد 54 × 3 وات من زوميوزي، مصابيح دي ام اكس 512 للتحكم في المسرح ودي جيه بإضاءة ار جي بي تعمل بالصوت مع 4 أوضاع عمل لحفلات الزفاف وعيد الميلاد...\r\n',NULL,500.00,NULL,NULL,100.00,'العاشر من رمضان, الشرقية',1,1,'2026-04-30 22:39:41',0,0.00,0),(21,19,6,'BOX','BOX BOX BOX',200.00,NULL,NULL,NULL,100.00,'العامرية, الإسكندرية',1,1,'2026-05-18 17:59:50',0,0.00,0);
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -397,7 +397,7 @@ CREATE TABLE `profiles` (
 
 LOCK TABLES `profiles` WRITE;
 /*!40000 ALTER TABLE `profiles` DISABLE KEYS */;
-INSERT INTO `profiles` VALUES (8,13,'','الإسكندرية','العامرية','http://localhost:9000/uploads/profiles/profile-1778328235162-575250367.png','2026-04-30 22:16:09'),(18,19,'','','','','2026-05-08 19:04:22'),(19,20,'','','','','2026-05-09 11:17:42');
+INSERT INTO `profiles` VALUES (8,13,'','الإسكندرية','العامرية','http://localhost:9000/uploads/profiles/profile-1778328235162-575250367.png','2026-04-30 22:16:09'),(18,19,'','الإسكندرية','العامرية','','2026-05-08 19:04:22'),(19,20,'','','','','2026-05-09 11:17:42');
 /*!40000 ALTER TABLE `profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -428,7 +428,7 @@ CREATE TABLE `rental_requests` (
   CONSTRAINT `rental_requests_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
   CONSTRAINT `rental_requests_ibfk_2` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`),
   CONSTRAINT `rental_requests_ibfk_3` FOREIGN KEY (`seller_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -437,6 +437,7 @@ CREATE TABLE `rental_requests` (
 
 LOCK TABLES `rental_requests` WRITE;
 /*!40000 ALTER TABLE `rental_requests` DISABLE KEYS */;
+INSERT INTO `rental_requests` VALUES (46,13,19,13,'2026-05-18 10:00:00','2026-05-18 17:00:00','daily',150.00,'accepted','2026-05-18 16:37:03','2026-05-18 19:37:25','wallet'),(47,21,13,19,'2026-05-18 21:00:00','2026-05-18 22:00:00','hourly',300.00,'accepted','2026-05-18 18:00:29','2026-05-18 21:00:35','wallet'),(48,21,13,19,'2026-05-18 22:30:00','2026-05-18 23:00:00','hourly',300.00,'accepted','2026-05-18 18:15:18','2026-05-18 21:15:25','wallet');
 /*!40000 ALTER TABLE `rental_requests` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -476,7 +477,7 @@ CREATE TABLE `rentals` (
   CONSTRAINT `rentals_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
   CONSTRAINT `rentals_ibfk_2` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`),
   CONSTRAINT `rentals_ibfk_3` FOREIGN KEY (`rental_request_id`) REFERENCES `rental_requests` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -485,6 +486,7 @@ CREATE TABLE `rentals` (
 
 LOCK TABLES `rentals` WRITE;
 /*!40000 ALTER TABLE `rentals` DISABLE KEYS */;
+INSERT INTO `rentals` VALUES (34,13,19,'2026-05-18 10:00:00','2026-05-18 17:00:00','daily',100.00,50.00,'pending',NULL,'2026-05-18 16:37:25',46,'wallet','released_to_lessor',NULL,NULL,10.00,10.00,'none',NULL,NULL),(35,21,13,'2026-05-18 21:00:00','2026-05-18 22:00:00','hourly',200.00,100.00,'pending','\nAdmin Resolution: Resolved by Admin','2026-05-18 18:00:35',47,'wallet','released_to_lessor',NULL,NULL,20.00,10.00,'resolved','بايظ\n__IMAGES__:[\"/uploads/issues/1779127769519-962128850.png\",\"/uploads/issues/1779127769520-261321710.png\",\"/uploads/issues/1779127769539-724604971.png\"]','2026-05-18 21:09:29'),(36,21,13,'2026-05-18 22:30:00','2026-05-18 23:00:00','hourly',200.00,100.00,'pending','\nAdmin Resolution: بيسب\n__SELLER_AWARD__:100\n__BUYER_REFUND__:null','2026-05-18 18:15:25',48,'wallet','released_to_lessor',NULL,NULL,20.00,10.00,'resolved','يشسيشسيشس\n__IMAGES__:[\"/uploads/issues/1779128136482-515611395.png\"]','2026-05-18 21:15:36');
 /*!40000 ALTER TABLE `rentals` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -541,7 +543,7 @@ CREATE TABLE `transactions` (
   PRIMARY KEY (`id`),
   KEY `wallet_id` (`wallet_id`),
   CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`wallet_id`) REFERENCES `wallets` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=108 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=126 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -550,6 +552,7 @@ CREATE TABLE `transactions` (
 
 LOCK TABLES `transactions` WRITE;
 /*!40000 ALTER TABLE `transactions` DISABLE KEYS */;
+INSERT INTO `transactions` VALUES (108,29,'deposit_escrow',500.00,'Wallet top-up via Vodafone Cash (01026237058)',NULL,'2026-05-18 16:37:00'),(109,29,'payment_out',150.00,'Payment for rental (Held in escrow)',34,'2026-05-18 16:37:33'),(110,30,'deposit_escrow',150.00,'Incoming escrow for rental',34,'2026-05-18 16:37:33'),(111,30,'escrow_release',90.00,'Rental income released',34,'2026-05-18 16:37:42'),(112,30,'commission_deduction',10.00,'Platform commission deduction',34,'2026-05-18 16:37:42'),(113,29,'deposit_escrow',50.00,'Security deposit refunded',34,'2026-05-18 16:37:42'),(114,30,'commission_earned',10.00,'Commission earned from rental',34,'2026-05-18 16:37:42'),(115,30,'deposit_escrow',500.00,'Wallet top-up via Vodafone Cash (01026237058)',NULL,'2026-05-18 18:00:26'),(116,30,'payment_out',300.00,'Payment for rental (Held in escrow)',35,'2026-05-18 18:00:40'),(117,29,'deposit_escrow',300.00,'Incoming escrow for rental',35,'2026-05-18 18:00:40'),(118,29,'escrow_release',180.00,'Partial release: Rental fee (Disputed)',35,'2026-05-18 18:09:29'),(119,30,'commission_earned',20.00,'Commission from disputed rental',35,'2026-05-18 18:09:29'),(120,29,'escrow_release',100.00,'Dispute resolution: Damage compensation',35,'2026-05-18 18:11:32'),(121,30,'payment_out',300.00,'Payment for rental (Held in escrow)',36,'2026-05-18 18:15:27'),(122,29,'deposit_escrow',300.00,'Incoming escrow for rental',36,'2026-05-18 18:15:27'),(123,29,'escrow_release',180.00,'Partial release: Rental fee (Disputed)',36,'2026-05-18 18:15:36'),(124,30,'commission_earned',20.00,'Commission from disputed rental',36,'2026-05-18 18:15:36'),(125,29,'escrow_release',100.00,'Dispute resolution: Damage compensation',36,'2026-05-18 18:16:25');
 /*!40000 ALTER TABLE `transactions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -607,7 +610,7 @@ CREATE TABLE `wallets` (
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `wallets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -616,6 +619,7 @@ CREATE TABLE `wallets` (
 
 LOCK TABLES `wallets` WRITE;
 /*!40000 ALTER TABLE `wallets` DISABLE KEYS */;
+INSERT INTO `wallets` VALUES (29,19,960.00,0.00,'2026-05-18 16:36:49','2026-05-18 18:16:25'),(30,13,40.00,0.00,'2026-05-18 16:37:33','2026-05-18 18:15:36');
 /*!40000 ALTER TABLE `wallets` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -660,4 +664,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-09 15:05:57
+-- Dump completed on 2026-05-21 20:28:26
