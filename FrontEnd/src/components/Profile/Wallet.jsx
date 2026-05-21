@@ -115,8 +115,13 @@ const Wallet = () => {
             <input id="swal-amount" type="number" min="1" max="${walletData?.wallet?.available_balance || 0}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:border-blue-500 focus:ring-blue-500" placeholder="0.00">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Vodafone Cash Number</label>
-            <input id="swal-phone" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:border-blue-500 focus:ring-blue-500" placeholder="010xxxxxxx">
+            <label class="block text-sm font-medium text-gray-700">Withdrawal Method</label>
+            <select id="swal-method" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:border-blue-500 focus:ring-blue-500 mb-3">
+              <option value="Vodafone Cash">Vodafone Cash</option>
+              <option value="Instapay">Instapay</option>
+            </select>
+            <label class="block text-sm font-medium text-gray-700">Account Details (Number / Address)</label>
+            <input id="swal-phone" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:border-blue-500 focus:ring-blue-500" placeholder="010xxxxxxx or name@instapay">
           </div>
         </div>
       `,
@@ -125,17 +130,21 @@ const Wallet = () => {
       confirmButtonText: "Submit Request",
       confirmButtonColor: "#B1A1FF",
       preConfirm: () => {
-        const amount = document.getElementById("swal-amount").value;
+        const amountStr = document.getElementById("swal-amount").value;
+        const method = document.getElementById("swal-method").value;
         const phone = document.getElementById("swal-phone").value;
-        if (!amount || amount <= 0 || amount > walletData?.wallet?.available_balance) {
-          Swal.showValidationMessage("Please enter a valid amount within your available balance");
+        const amount = Number(amountStr);
+        const availableBalance = Number(walletData?.wallet?.available_balance || 0);
+
+        if (!amount || amount <= 0 || amount > availableBalance) {
+          Swal.showValidationMessage(`Please enter a valid amount within your available balance (${availableBalance} EGP)`);
           return false;
         }
-        if (!phone || phone.length < 11) {
-          Swal.showValidationMessage("Please enter a valid Vodafone Cash number");
+        if (!phone || phone.trim().length < 5) {
+          Swal.showValidationMessage("Please enter a valid Vodafone Cash number or Instapay address");
           return false;
         }
-        return { amount, account_details: phone };
+        return { amount, method, account_details: phone };
       }
     });
 

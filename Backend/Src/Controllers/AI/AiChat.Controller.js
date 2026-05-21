@@ -25,6 +25,8 @@ const chatWithAI = async (req, res) => {
       description: p.description,
     }));
 
+
+
     // 2. Static Site Info
     const faqContext = [
       {

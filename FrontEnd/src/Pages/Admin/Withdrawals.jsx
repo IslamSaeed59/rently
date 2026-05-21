@@ -298,11 +298,11 @@ const AdminWithdrawals = () => {
                     </td>
                     <td className="px-8 py-6">
                       <div className="inline-flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl group-hover:bg-white transition-colors border border-transparent group-hover:border-gray-100">
-                        <div className="w-8 h-8 rounded-lg bg-[#FF0000]/10 flex items-center justify-center text-[#FF0000]">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${req.method === 'Instapay' ? 'bg-purple-100 text-purple-600' : 'bg-[#FF0000]/10 text-[#FF0000]'}`}>
                           <Phone size={16} />
                         </div>
                         <div>
-                          <p className="text-xs font-black text-gray-400 uppercase tracking-tighter">Vodafone Cash</p>
+                          <p className="text-xs font-black text-gray-400 uppercase tracking-tighter">{req.method || 'Vodafone Cash'}</p>
                           <p className="text-sm font-black text-gray-700 font-mono tracking-wider">{req.account_details}</p>
                         </div>
                       </div>

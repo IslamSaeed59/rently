@@ -25,15 +25,14 @@ const WalletController = {
   requestWithdrawal: async (req, res) => {
     try {
       const userId = req.user.userId || req.user.id;
-      const { amount, account_details } = req.body;
-      const method = "Vodafone Cash"; // Fixed to Vodafone cash as requested
+      const { amount, method, account_details } = req.body;
 
       if (!amount || amount <= 0) {
         return res.status(400).json({ message: "Invalid amount." });
       }
 
-      if (!account_details) {
-        return res.status(400).json({ message: "Please provide your Vodafone Cash number." });
+      if (!method || !account_details) {
+        return res.status(400).json({ message: "Please provide both withdrawal method and account details." });
       }
 
       const withdrawalId = await Wallet.requestWithdrawal(userId, amount, method, account_details);
