@@ -123,6 +123,21 @@ const Rental = {
   findBySellerId: async (sellerId) => {
     return await Rental.findAll({ seller_id: sellerId });
   },
+
+  confirmDelivery: async (id, deliveryData) => {
+    const { start_datetime, end_datetime, delivery_photos } = deliveryData;
+    const [result] = await pool.query(
+      `UPDATE rentals 
+       SET delivery_status = 'confirmed', 
+           status = 'active',
+           delivery_photos = ?, 
+           start_datetime = ?, 
+           end_datetime = ?
+       WHERE id = ?`,
+      [JSON.stringify(delivery_photos), start_datetime, end_datetime, id],
+    );
+    return result.affectedRows > 0;
+  },
 };
 
 module.exports = Rental;

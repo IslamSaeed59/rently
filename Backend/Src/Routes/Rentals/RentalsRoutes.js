@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const rentalsController = require("../../Controllers/Rentals/Rentals.Controller");
 const authMiddleware = require("../../middleware/authMiddleware");
+const deliveryUpload = require("../../middleware/deliveryUpload");
 
 // All routes are protected
 router.use(authMiddleware);
@@ -12,5 +13,6 @@ router.get("/seller", rentalsController.getSellerRentals);
 router.get("/:id", rentalsController.getRentalById);
 router.put("/:id/status", rentalsController.updateRentalStatus);
 router.put("/:id/payment", rentalsController.updatePaymentStatus);
+router.put("/:id/confirm-delivery", deliveryUpload.array("photos", 5), rentalsController.confirmDelivery);
 
 module.exports = router;

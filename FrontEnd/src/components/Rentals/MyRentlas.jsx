@@ -16,7 +16,7 @@ import {
   History
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { getMyRequests, updateRequestStatus } from "../../server/ProductsApi";
+import { getMyRequests, updateRequestStatus, confirmDelivery } from "../../server/ProductsApi";
 import { getAllCategories, payForRental, completeRental } from "../../server/Api";
 import Swal from "sweetalert2";
 
@@ -29,6 +29,11 @@ const MyRentals = () => {
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [sortBy, setSortBy] = useState("latest");
   const [activeTab, setActiveTab] = useState("all");
+
+  const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
+  const [selectedRentalForDelivery, setSelectedRentalForDelivery] = useState(null);
+  const [deliveryPhotos, setDeliveryPhotos] = useState([]);
+  const [isSubmittingDelivery, setIsSubmittingDelivery] = useState(false);
 
   useEffect(() => {
     fetchInitialData();
@@ -82,6 +87,10 @@ const MyRentals = () => {
       // New: Check if paid first
       if (rental.payment_status !== "held_in_escrow" && rental.payment_status !== "released_to_lessor") {
         return { label: "Payment Required", color: "amber", icon: <Timer size={14} /> };
+      }
+
+      if (rental.delivery_status !== "confirmed") {
+        return { label: "Awaiting Delivery", color: "amber", icon: <Package size={14} /> };
       }
 
       if (now < start) return { label: "Starting Soon", color: "blue", icon: <Calendar size={14} /> };
@@ -277,6 +286,40 @@ const MyRentals = () => {
           text: error.message || 'Failed to complete rental'
         });
       }
+    }
+  };
+
+  const handlePhotoUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (deliveryPhotos.length + files.length > 5) {
+      toast.error("You can only upload up to 5 condition photos");
+      return;
+    }
+    setDeliveryPhotos((prev) => [...prev, ...files]);
+  };
+
+  const submitDeliveryConfirmation = async () => {
+    if (deliveryPhotos.length === 0) {
+      toast.error("Please upload at least one condition photo");
+      return;
+    }
+
+    setIsSubmittingDelivery(true);
+    try {
+      const formData = new FormData();
+      deliveryPhotos.forEach((photo) => {
+        formData.append("photos", photo);
+      });
+
+      await confirmDelivery(selectedRentalForDelivery.rental_id, formData);
+      toast.success("Delivery confirmed successfully!");
+      setIsDeliveryModalOpen(false);
+      setDeliveryPhotos([]);
+      fetchRentals();
+    } catch (error) {
+      toast.error(error.message || "Failed to confirm delivery");
+    } finally {
+      setIsSubmittingDelivery(false);
     }
   };
 
@@ -520,7 +563,20 @@ const MyRentals = () => {
                                 </button>
                               )}
                               
-                              {rental.payment_status === "held_in_escrow" && (status.label === "Active Now" || status.label === "Completed") && (
+                              {rental.payment_status === "held_in_escrow" && rental.delivery_status !== "confirmed" && (
+                                <button 
+                                  onClick={() => {
+                                    setSelectedRentalForDelivery(rental);
+                                    setDeliveryPhotos([]);
+                                    setIsDeliveryModalOpen(true);
+                                  }}
+                                  className="bg-[#050F2A] text-white px-4 py-2 rounded-xl font-bold text-xs hover:bg-gray-800 transition-all shadow-lg shadow-gray-200"
+                                >
+                                  Confirm Delivery
+                                </button>
+                              )}
+                              
+                              {rental.payment_status === "held_in_escrow" && rental.delivery_status === "confirmed" && (status.label === "Active Now" || status.label === "Completed") && (
                                 <button 
                                   onClick={() => handleCompleteRental(rental)}
                                   className="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
@@ -568,6 +624,95 @@ const MyRentals = () => {
           </div>
         </div>
       </div>
+
+      {/* Delivery Confirmation Modal */}
+      {isDeliveryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#050F2A]/40 backdrop-blur-sm">
+          <div className="bg-white rounded-[2rem] w-full max-w-lg overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h2 className="text-xl font-black text-[#050F2A]">Confirm Delivery</h2>
+              <button 
+                onClick={() => setIsDeliveryModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-gray-400 hover:text-[#050F2A] hover:shadow-md transition-all"
+              >
+                <XCircle size={20} />
+              </button>
+            </div>
+            
+            <div className="p-8">
+              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-6 flex gap-3">
+                <AlertCircle className="text-blue-500 shrink-0 mt-0.5" size={18} />
+                <p className="text-sm text-blue-800 leading-relaxed font-medium">
+                  Please upload photos of the item's current condition before you start the rental. This protects you in case of any existing damage.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <label className="block text-sm font-bold text-gray-700">Condition Photos (Max 5)</label>
+                
+                {deliveryPhotos.length > 0 && (
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    {deliveryPhotos.map((photo, index) => (
+                      <div key={index} className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200">
+                        <img 
+                          src={URL.createObjectURL(photo)} 
+                          alt="Condition preview" 
+                          className="w-full h-full object-cover"
+                        />
+                        <button 
+                          onClick={() => setDeliveryPhotos(prev => prev.filter((_, i) => i !== index))}
+                          className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg"
+                        >
+                          <Trash2 size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {deliveryPhotos.length < 5 && (
+                  <div className="relative">
+                    <input 
+                      type="file" 
+                      multiple 
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    <div className="w-full border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center text-gray-400 group hover:border-[#050F2A] hover:bg-gray-50 transition-all">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-[#050F2A] group-hover:text-white transition-all">
+                        <Package size={20} />
+                      </div>
+                      <span className="text-sm font-bold group-hover:text-[#050F2A]">Click or drag photos here</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+              <button 
+                onClick={() => setIsDeliveryModalOpen(false)}
+                className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-200 transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={submitDeliveryConfirmation}
+                disabled={isSubmittingDelivery || deliveryPhotos.length === 0}
+                className="bg-[#050F2A] text-white px-8 py-3 rounded-xl font-bold hover:scale-105 transition-all shadow-lg shadow-[#050F2A]/20 disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
+              >
+                {isSubmittingDelivery ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Confirming...
+                  </>
+                ) : "Confirm Delivery"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

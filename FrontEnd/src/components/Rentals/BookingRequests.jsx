@@ -495,7 +495,7 @@ const BookingRequests = () => {
                       <button className="px-8 py-2.5 bg-gray-100 text-[#050F2A] font-bold text-[13px] rounded-xl hover:bg-gray-200 transition-all min-w-[140px]">
                         Manage Booking
                       </button>
-                      {request.payment_status === "held_in_escrow" && (
+                      {request.payment_status === "held_in_escrow" && request.delivery_status === "confirmed" && (
                         <button 
                           onClick={() => handleConfirmReturn(request.rental_id)}
                           className="px-8 py-2.5 bg-green-600 text-white font-bold text-[13px] rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-600/20"
@@ -503,7 +503,7 @@ const BookingRequests = () => {
                           Confirm Return
                         </button>
                       )}
-                      {request.payment_status === "held_in_escrow" && (
+                      {request.payment_status === "held_in_escrow" && request.delivery_status === "confirmed" && (
                         <button 
                           onClick={() => handleReportIssue(request.rental_id)}
                           className="px-8 py-2.5 bg-red-50 text-red-600 font-bold text-[13px] rounded-xl hover:bg-red-100 transition-all"

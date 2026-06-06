@@ -190,6 +190,19 @@ export const updatePaymentStatus = async (id, paymentData) => {
   }
 };
 
+export const confirmDelivery = async (rentalId, formData) => {
+  try {
+    const response = await ProductsApi.put(`rentals/${rentalId}/confirm-delivery`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
 export const confirmReturn = async (rentalId) => {
   try {
     const response = await ProductsApi.post("payments/confirm-return", { rental_id: rentalId });

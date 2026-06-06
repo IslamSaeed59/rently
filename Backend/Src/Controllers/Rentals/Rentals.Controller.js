@@ -140,6 +140,62 @@ const updatePaymentStatus = async (req, res) => {
   }
 };
 
+const confirmDelivery = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId || req.user.id;
+
+    const rental = await Rental.findById(id);
+    if (!rental) {
+      return res.status(404).json({ message: "Rental not found" });
+    }
+
+    // Only buyer can confirm delivery
+    if (rental.buyer_id !== userId) {
+      return res.status(403).json({ message: "Only the buyer can confirm delivery" });
+    }
+
+    if (rental.delivery_status === 'confirmed') {
+      return res.status(400).json({ message: "Delivery is already confirmed" });
+    }
+
+    // Handle uploaded photos
+    const delivery_photos = req.files ? req.files.map(f => `/uploads/deliveries/${f.filename}`) : [];
+
+    if (delivery_photos.length === 0) {
+      return res.status(400).json({ message: "At least one condition photo is required" });
+    }
+
+    // Calculate new start and end times
+    const originalStart = new Date(rental.start_datetime);
+    const originalEnd = new Date(rental.end_datetime);
+    const originalDurationMs = originalEnd.getTime() - originalStart.getTime();
+
+    const newStartDatetime = new Date();
+    const newEndDatetime = new Date(newStartDatetime.getTime() + originalDurationMs);
+
+    const success = await Rental.confirmDelivery(id, {
+      start_datetime: newStartDatetime,
+      end_datetime: newEndDatetime,
+      delivery_photos
+    });
+
+    if (success) {
+      res.status(200).json({ 
+        message: "Delivery confirmed successfully",
+        new_start_datetime: newStartDatetime,
+        new_end_datetime: newEndDatetime,
+        delivery_photos
+      });
+    } else {
+      res.status(400).json({ message: "Failed to confirm delivery" });
+    }
+  } catch (error) {
+    console.error("Confirm Delivery Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   createRental,
   getMyRentals,
@@ -147,4 +203,5 @@ module.exports = {
   getRentalById,
   updateRentalStatus,
   updatePaymentStatus,
+  confirmDelivery,
 };
